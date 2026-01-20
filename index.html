@@ -16,7 +16,7 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-        // --- KONFIGURASI DATABASE BAPAK (SUDAH SAYA MASUKKAN) ---
+        // --- KONFIGURASI DATABASE BAPAK (SUDAH TERPASANG) ---
         const firebaseConfig = {
             apiKey: "AIzaSyD0XGoRIIntaMiD-xuJUJsA38-jwiz3zxs",
             authDomain: "catatan-ngaji-app.firebaseapp.com",
@@ -35,7 +35,7 @@
     </script>
 
     <style>
-        /* CSS Khusus Cetak PDF (Agar Rapi & Mirip Kertas A4) */
+        /* CSS Khusus Cetak PDF */
         @media print {
             body * { visibility: hidden; }
             #area-print, #area-print * { visibility: visible; }
@@ -57,11 +57,12 @@
             const [dataSiswa, setDataSiswa] = useState([]);
             const [loading, setLoading] = useState(false);
             
-            // Form State
+            // Form State (Ditambah 'halaman')
             const [form, setForm] = useState({
                 nama: '',
                 kategori: 'Al-Quran', 
                 materi: '', 
+                halaman: '',  // <-- KOLOM BARU
                 ayat: '', 
                 status: 'Lancar', 
                 catatan: ''
@@ -114,7 +115,8 @@
                         tanggal: new Date().toISOString(),
                         ...form
                     });
-                    setForm({...form, materi: '', ayat: '', catatan: ''}); // Reset sebagian form
+                    // Reset sebagian form (nama tetap)
+                    setForm({...form, materi: '', halaman: '', ayat: '', catatan: ''}); 
                     alert("✅ Data tersimpan!");
                 } catch (error) { alert("Gagal: " + error.message); }
             };
@@ -132,6 +134,7 @@
                 setView('rapor');
             };
 
+            // HALAMAN LOGIN
             if (!user) {
                 return (
                     <div className="flex items-center justify-center min-h-screen bg-green-50">
@@ -149,6 +152,7 @@
                 );
             }
 
+            // HALAMAN INPUT
             if (view === 'input') {
                 const uniqueNames = [...new Set(dataSiswa.map(item => item.nama))];
                 return (
@@ -184,7 +188,13 @@
                                 
                                 <input type="text" placeholder={form.kategori === 'Al-Quran' ? "Nama Surat" : "Nama Doa / Hadits"} className="w-full p-2 border rounded" value={form.materi} onChange={e => setForm({...form, materi: e.target.value})} required />
                                 
-                                {form.kategori === 'Al-Quran' && <input type="text" placeholder="Ayat (Contoh: 1-5)" className="w-full p-2 border rounded" value={form.ayat} onChange={e => setForm({...form, ayat: e.target.value})} />}
+                                {/* KOLOM KHUSUS AL-QURAN: HALAMAN & AYAT */}
+                                {form.kategori === 'Al-Quran' && (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <input type="text" placeholder="Halaman (Contoh: 20)" className="p-2 border rounded" value={form.halaman} onChange={e => setForm({...form, halaman: e.target.value})} />
+                                        <input type="text" placeholder="Ayat (Contoh: 1-5)" className="p-2 border rounded" value={form.ayat} onChange={e => setForm({...form, ayat: e.target.value})} />
+                                    </div>
+                                )}
                                 
                                 <input type="text" placeholder="Catatan (Opsional)" className="w-full p-2 border rounded" value={form.catatan} onChange={e => setForm({...form, catatan: e.target.value})} />
                                 
@@ -216,7 +226,9 @@
                                     <div key={item.id} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm flex justify-between items-center mb-2">
                                         <div className="text-sm">
                                             <span className="font-bold block">{item.nama}</span>
-                                            <span className="text-gray-500 text-xs">{item.materi}</span>
+                                            <span className="text-gray-500 text-xs">
+                                                {item.materi} {item.halaman ? `(Hal ${item.halaman})` : ''}
+                                            </span>
                                         </div>
                                         <button onClick={() => handleDelete(item.id)} className="text-red-400 text-xs hover:text-red-600">Hapus</button>
                                     </div>
@@ -263,24 +275,25 @@
                                 </table>
                             </div>
 
-                            {/* TABEL A: QURAN */}
+                            {/* TABEL A: QURAN (ADA KOLOM HALAMAN) */}
                             <div className="mb-6">
                                 <h3 className="font-bold bg-green-100 p-2 mb-2 border-l-4 border-green-600 text-green-900">A. Hafalan Al-Qur'an</h3>
                                 <table className="w-full border-collapse border border-black text-sm">
                                     <tr className="bg-gray-100 text-center">
-                                        <th className="border border-black p-2 w-10">No</th>
+                                        <th className="border border-black p-2 w-8">No</th>
                                         <th className="border border-black p-2 text-left">Surat</th>
-                                        <th className="border border-black p-2 w-20">Ayat</th>
-                                        <th className="border border-black p-2 w-20">Lancar</th>
-                                        <th className="border border-black p-2 w-20">Latihan</th>
+                                        <th className="border border-black p-2 w-16">Hal</th> <th className="border border-black p-2 w-16">Ayat</th>
+                                        <th className="border border-black p-2 w-16">Lancar</th>
+                                        <th className="border border-black p-2 w-16">Latihan</th>
                                         <th className="border border-black p-2 text-left">Catatan</th>
                                     </tr>
-                                    {quran.length === 0 ? <tr><td colSpan="6" className="text-center p-3 border border-black italic text-gray-500">Belum ada data hafalan</td></tr> : 
+                                    {quran.length === 0 ? <tr><td colSpan="7" className="text-center p-3 border border-black italic text-gray-500">Belum ada data hafalan</td></tr> : 
                                     quran.map((item, i) => (
                                         <tr key={i}>
                                             <td className="border border-black p-2 text-center">{i+1}</td>
                                             <td className="border border-black p-2 font-semibold">{item.materi}</td>
-                                            <td className="border border-black p-2 text-center">{item.ayat}</td>
+                                            <td className="border border-black p-2 text-center">{item.halaman || '-'}</td>
+                                            <td className="border border-black p-2 text-center">{item.ayat || '-'}</td>
                                             <td className="border border-black p-2 text-center text-green-600 font-bold">{item.status==='Lancar'?'✓':''}</td>
                                             <td className="border border-black p-2 text-center text-yellow-600 font-bold">{item.status!=='Lancar'?'✓':''}</td>
                                             <td className="border border-black p-2">{item.catatan}</td>
