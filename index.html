@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Ngaji Pro - Lengkap</title>
+    <title>App Ngaji Pro - Ultimate</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -14,16 +14,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
         body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .font-arabic { font-family: 'Amiri', serif; line-height: 2.2; direction: rtl; }
         .animate-fade { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
-        /* Cetak Rapor agar rapi */
-        @media print {
-            body * { visibility: hidden; }
-            #area-print, #area-print * { visibility: visible; }
-            #area-print { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background: white; }
-        }
     </style>
 </head>
 <body>
@@ -51,76 +46,159 @@
     </script>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect } = React;
 
-        // --- DATA STATIS ---
-        const SURAH_LIST = ["1. Al-Fatihah", "2. Al-Baqarah", "3. Ali 'Imran", "4. An-Nisa", "5. Al-Maidah", "6. Al-An'am", "7. Al-A'raf", "8. Al-Anfal", "9. At-Taubah", "10. Yunus", "78. An-Naba", "79. An-Nazi'at", "80. 'Abasa", "81. At-Takwir", "82. Al-Infitar", "83. Al-Mutaffifin", "84. Al-Insyiqaq", "85. Al-Buruj", "86. At-Tariq", "87. Al-A'la", "88. Al-Ghasyiyah", "89. Al-Fajr", "90. Al-Balad", "91. Asy-Syams", "92. Al-Lail", "93. Ad-Duha", "94. Asy-Syarh", "95. At-Tin", "96. Al-'Alaq", "97. Al-Qadr", "98. Al-Bayyinah", "99. Az-Zalzalah", "100. Al-'Adiyat", "101. Al-Qari'ah", "102. At-Takasur", "103. Al-'Asr", "104. Al-Humazah", "105. Al-Fil", "106. Quraisy", "107. Al-Ma'un", "108. Al-Kausar", "109. Al-Kafirun", "110. An-Nasr", "111. Al-Lahab", "112. Al-Ikhlas", "113. Al-Falaq", "114. An-Nas"];
+        /* ================= DATA DATABASE LENGKAP ================= */
+        const SURAH_LIST = ["1. Al-Fatihah", "2. Al-Baqarah", "3. Ali 'Imran", "4. An-Nisa", "5. Al-Maidah", "6. Al-An'am", "7. Al-A'raf", "8. Al-Anfal", "9. At-Taubah", "10. Yunus", "11. Hud", "12. Yusuf", "13. Ar-Ra'd", "14. Ibrahim", "15. Al-Hijr", "16. An-Nahl", "17. Al-Isra", "18. Al-Kahf", "19. Maryam", "20. Taha", "21. Al-Anbiya", "22. Al-Hajj", "23. Al-Mu'minun", "24. An-Nur", "25. Al-Furqan", "26. Asy-Syu'ara", "27. An-Naml", "28. Al-Qasas", "29. Al-Ankabut", "30. Ar-Rum", "31. Luqman", "32. As-Sajdah", "33. Al-Ahzab", "34. Saba'", "35. Fatir", "36. Yasin", "37. As-Saffat", "38. Sad", "39. Az-Zumar", "40. Al-Mu'min", "41. Fussilat", "42. Asy-Syura", "43. Az-Zukhruf", "44. Ad-Dukhan", "45. Al-Jasiyah", "46. Al-Ahqaf", "47. Muhammad", "48. Al-Fath", "49. Al-Hujurat", "50. Qaf", "51. Az-Zariyat", "52. At-Tur", "53. An-Najm", "54. Al-Qamar", "55. Ar-Rahman", "56. Al-Waqi'ah", "57. Al-Hadid", "58. Al-Mujadilah", "59. Al-Hasyr", "60. Al-Mumtahanah", "61. As-Saff", "62. Al-Jumu'ah", "63. Al-Munafiqun", "64. At-Tagabun", "65. At-Talaq", "66. At-Tahrim", "67. Al-Mulk", "68. Al-Qalam", "69. Al-Haqqah", "70. Al-Ma'arij", "71. Nuh", "72. Al-Jinn", "73. Al-Muzzammil", "74. Al-Muddassir", "75. Al-Qiyamah", "76. Al-Insan", "77. Al-Mursalat", "78. An-Naba", "79. An-Nazi'at", "80. 'Abasa", "81. At-Takwir", "82. Al-Infitar", "83. Al-Mutaffifin", "84. Al-Insyiqaq", "85. Al-Buruj", "86. At-Tariq", "87. Al-A'la", "88. Al-Ghasyiyah", "89. Al-Fajr", "90. Al-Balad", "91. Asy-Syams", "92. Al-Lail", "93. Ad-Duha", "94. Asy-Syarh", "95. At-Tin", "96. Al-'Alaq", "97. Al-Qadr", "98. Al-Bayyinah", "99. Az-Zalzalah", "100. Al-'Adiyat", "101. Al-Qari'ah", "102. At-Takasur", "103. Al-'Asr", "104. Al-Humazah", "105. Al-Fil", "106. Quraisy", "107. Al-Ma'un", "108. Al-Kausar", "109. Al-Kafirun", "110. An-Nasr", "111. Al-Lahab", "112. Al-Ikhlas", "113. Al-Falaq", "114. An-Nas"];
         const IQRO_LEVELS = ["Iqro 1", "Iqro 2", "Iqro 3", "Iqro 4", "Iqro 5", "Iqro 6"];
+        
+        const DOA_DATA = [
+            { title: "1. Sebelum Tidur", arabic: "بِاسْمِكَ اللَّهُمَّ أَمُوْتُ وَأَحْيَا" },
+            { title: "2. Bangun Tidur", arabic: "اَلْحَمْدُ لِلَّهِ الَّذِيْ أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُوْرِ" },
+            { title: "3. Masuk Kamar Mandi", arabic: "اَللَّهُمَّ إِنِّيْ أَعُوْذُ بِكَ مِنَ الْخُبُثِ وَالْخَبَائِثِ" },
+            { title: "4. Keluar Kamar Mandi", arabic: "غُفْرَانَكَ الْحَمْدُ ِللهِ الَّذِىْ أَذْهَبَ عَنِّى اْلأَذَى وَعَافَانِىْ" },
+            { title: "5. Sebelum Wudhu", arabic: "بِسْمِ اللَّهِ" },
+            { title: "6. Setelah Wudhu", arabic: "أَشْهَدُ أَنْ لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ..." },
+            { title: "7. Sebelum Makan", arabic: "اَللَّهُمَّ بَارِكْ لَنَا فِيْمَا رَزَقْتَنَا وَقِنَا عَذَابَ النَّارِ" },
+            { title: "8. Sesudah Makan", arabic: "الْحَمْدُ لِلَّهِ الَّذِيْ أَطْعَمَنَا وَسَقَانَا وَجَعَلَنَا مُسْلِمِيْنَ" },
+            { title: "9. Memakai Pakaian", arabic: "الْحَمْدُ لِلَّهِ الَّذِيْ كَسَانِيْ هَذَا وَرَزَقَنِيْهِ..." },
+            { title: "10. Melepas Pakaian", arabic: "بِسْمِ اللَّهِ الَّذِيْ لاَ إِلَهَ إِلَّا هُوَ" },
+            { title: "11. Bercermin", arabic: "اَللَّهُمَّ كَمَا حَسَّنْتَ خَلْقِيْ فَحَسِّنْ خُلُقِيْ" },
+            { title: "12. Keluar Rumah", arabic: "بِسْمِ اللَّهِ تَوَكَّلْتُ عَلَى اللَّهِ، لاَ حَوْلَ وَلاَ قُوَّةَ إِلاَّ بِاللَّهِ" },
+            { title: "13. Masuk Rumah", arabic: "بِسْمِ اللَّهِ وَلَجْنَا، وَبِسْمِ اللَّهِ خَرَجْنَا، وَعَلَى رَبِّنَا تَوَكَّلْنَا" },
+            { title: "14. Masuk Masjid", arabic: "اَللَّهُمَّ افْتَحْ لِيْ أَبْوَابَ رَحْمَتِكَ" },
+            { title: "15. Keluar Masjid", arabic: "اَللَّهُمَّ إِنِّيْ أَسْأَلُكَ مِنْ فَضْلِكَ" },
+            { title: "16. Naik Kendaraan", arabic: "سُبْحَانَ الَّذِيْ سَخَّرَ لَنَا هَذَا وَمَا كُنَّا لَهُ مُقْرِنِيْنَ" },
+            { title: "17. Masuk Pasar/Mall", arabic: "لاَ إِلَهَ إِلاَّ اللَّهُ وَحْدَهُ لاَ شَرِيكَ لَهُ..." },
+            { title: "18. Sebelum Belajar", arabic: "رَبِّ زِدْنِيْ عِلْمًا وَارْزُقْنِيْ فَهْمًا" },
+            { title: "19. Sesudah Belajar", arabic: "اَللَّهُمَّ إِنِّيْ أَسْتَوْدِعُكَ مَا عَلَّمْتَنِيْهِ..." },
+            { title: "20. Kebaikan Dunia Akhirat", arabic: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ" },
+            { title: "21. Untuk Kedua Orangtua", arabic: "اَللَّهُمَّ اغْفِرْلِيْ وَلِوَالِدَيَّ وَارْحَمْهُمَا كَمَا رَبَّيَانِيْ صَغِيْرًا" },
+            { title: "22. Ketika Bersin", arabic: "الْحَمْدُ لِلَّهِ" },
+            { title: "23. Mendengar Orang Bersin", arabic: "يَرْحَمُكَ اللَّهُ" },
+            { title: "24. Menjawab Doa Bersin", arabic: "يَهْدِيكُمُ اللَّهُ وَيُصْلِحُ بَالَكُمْ" },
+            { title: "25. Menjenguk Orang Sakit", arabic: "لاَ بَأْسَ طَهُورٌ إِنْ شَاءَ اللَّهُ" },
+            { title: "26. Ditimpa Musibah", arabic: "إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُوْنَ" },
+            { title: "27. Mendengar Petir", arabic: "سُبْحَانَ الَّذِيْ يُسَبِّحُ الرَّعْدُ بِحَمْدِهِ..." },
+            { title: "28. Turun Hujan", arabic: "اَللَّهُمَّ صَيِّبًا نَافِعًا" },
+            { title: "29. Setelah Hujan", arabic: "مُطِرْنَا بِفَضْلِ اللَّهِ وَرَحْمَتِهِ" },
+            { title: "30. Melihat Bulan Sabit", arabic: "اللَّهُمَّ أَهِلَّهُ عَلَيْنَا بِالْأَمْنِ وَالْإِيمَانِ..." },
+            { title: "31. Berbuka Puasa", arabic: "ذَهَبَ الظَّمَأُ وَابْتَلَّتِ الْعُرُوقُ، وَثَبَتَ الْأَجْرُ إِنْ شَاءَ اللَّهُ" },
+            { title: "32. Lailatul Qadar", arabic: "اَللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّيْ" },
+            { title: "33. Mohon Kemudahan", arabic: "اَللَّهُمَّ لاَ سَهْلَ إِلاَّ مَا جَعَلْتَهُ سَهْلاً..." },
+            { title: "34. Kafaratul Majelis", arabic: "سُبْحَانَكَ اللَّهُمَّ وَبِحَمْدِكَ، أَشْهَدُ أَنْ لاَ إِلَهَ إِلاَّ أَنْتَ..." },
+            { title: "35. Mimpi Buruk", arabic: "أَعُوْذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ غَضَبِهِ..." },
+            { title: "36. Mohon Kesabaran", arabic: "رَبَّنَا أَفْرِغْ عَلَيْنَا صَبْرًا وَتَوَفَّنَا مُسْلِمِينَ" },
+            { title: "37. Menghilangkan Marah", arabic: "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ" },
+            { title: "38. Pagi Hari", arabic: "اَللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا..." },
+            { title: "39. Sore Hari", arabic: "اَللَّهُمَّ بِكَ أَمْسَيْنَا وَبِكَ أَصْبَحْنَا..." },
+            { title: "40. Bayar Hutang", arabic: "اَللَّهُمَّ اكْفِنِيْ بِحَلاَلِكَ عَنْ حَرَامِكَ..." },
+            { title: "41. Mohon Ketetapan Hati", arabic: "يَا مُقَلِّبَ الْقُلُوبِ ثَبِّتْ قَلْبِي عَلَى دِينِكَ" },
+            { title: "42. Mohon Perlindungan Syirik", arabic: "اَللَّهُمَّ إِنِّيْ أَعُوْذُ بِكَ أَنْ أُشْرِكَ بِكَ وَأَنَا أَعْلَمُ..." },
+            { title: "43. Masuk Kota/Desa", arabic: "اَللَّهُمَّ بَارِكْ لَنَا فِيْهَا" },
+            { title: "44. Mendengar Ayam Berkokok", arabic: "اَللَّهُمَّ إِنِّيْ أَسْأَلُكَ مِنْ فَضْلِكَ" },
+            { title: "45. Mendengar Anjing Menggonggong", arabic: "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ" }
+        ];
 
+        const HADITS_DATA = [
+            { title: "1. Niat", arabic: "إِنَّمَا اْلأَعْمَالُ بِالنِّيَّاتِ" },
+            { title: "2. Kebersihan", arabic: "الظُّهُوْرُ شَطْرُ اْلإِيْمَانِ" },
+            { title: "3. Senyum", arabic: "تَبَسُّمُكَ فِيْ وَجْهِ أَخِيْكَ لَكَ صَدَقَةٌ" },
+            { title: "4. Larangan Marah", arabic: "لاَ تَغْضَبْ وَلَكَ الْجَنَّةُ" },
+            { title: "5. Menuntut Ilmu", arabic: "طَلَبُ الْعِلْمِ فَرِيْضَةٌ عَلَى كُلِّ مُسْلِمٍ" },
+            { title: "6. Tangan Diatas", arabic: "اَلْيَدُ الْعُلْيَا خَيْرٌ مِنَ الْيَدِ السُّفْلَى" },
+            { title: "7. Surga Ibu", arabic: "الْجَنَّةُ تَحْتَ أَقْدَامِ الْأُمَّهَاتِ" },
+            { title: "8. Manusia Terbaik", arabic: "خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ" },
+            { title: "9. Persaudaraan", arabic: "اَلْمُسْلِمُ أَخُوْ الْمُسْلِمِ" },
+            { title: "10. Kejujuran", arabic: "عَلَيْكُمْ بِالصِّدْقِ" },
+            { title: "11. Larangan Mencela", arabic: "سِبَابُ الْمُسْلِمِ فُسُوْقٌ" },
+            { title: "12. Kasih Sayang", arabic: "مَنْ لاَ يَرْحَمْ لاَ يُرْحَمْ" },
+            { title: "13. Saling Memberi Hadiah", arabic: "تَهَادَوْا تَحَابُّوْا" },
+            { title: "14. Malu Sebagian Iman", arabic: "اَلْحَيَاءُ مِنَ اْلإِيْمَانِ" },
+            { title: "15. Menjaga Lisan", arabic: "أَمْسِكْ عَلَيْكَ لِسَانَكَ" },
+            { title: "16. Shalat Tiang Agama", arabic: "اَلصَّلاَةُ عِمَادُ الدِّيْنِ" },
+            { title: "17. Adab Makan", arabic: "سَمِّ اللَّهَ وَكُلْ بِيَمِينِكَ" },
+            { title: "18. Larangan Makan Berdiri", arabic: "لاَ يَأْكُلَنَّ أَحَدُكُمْ قَائِمًا" },
+            { title: "19. Keutamaan Al-Quran", arabic: "خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ" },
+            { title: "20. Memuliakan Tamu", arabic: "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ اْلآخِرِ فَلْيُكْرِمْ ضَيْفَهُ" },
+            { title: "21. Silaturahmi", arabic: "لاَ يَدْخُلُ الْجَنَّةَ قَاطِعٌ" },
+            { title: "22. Keindahan", arabic: "إِنَّ اللَّهَ جَمِيْلٌ يُحِبُّ الْجَمَالَ" },
+            { title: "23. Doa adalah Ibadah", arabic: "الدُّعَاءُ هُوَ الْعِبَادَةُ" },
+            { title: "24. Larangan Sombong", arabic: "لاَ يَدْخُلُ الْجَنَّةَ مَنْ كَانَ فِي قَلْبِهِ مِثْقَالُ ذَرَّةٍ مِنْ كِبْرٍ" },
+            { title: "25. Agama adalah Nasihat", arabic: "الدِّيْنُ النَّصِيْحَةُ" },
+            { title: "26. Berkata Baik", arabic: "فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ" },
+            { title: "27. Keutamaan Salam", arabic: "أَفْشُوا السَّلاَمَ بَيْنَكُمْ" },
+            { title: "28. Bersuci", arabic: "لاَ تُقْبَلُ صَلاَةٌ بِغَيْرِ طُهُوْرٍ" },
+            { title: "29. Ridho Orang Tua", arabic: "رِضَا الرَّبِّ فِي رِضَا الْوَالِدِ" },
+            { title: "30. Larangan Minum Khamr", arabic: "كُلُّ مُسْكِرٍ حَرَامٌ" },
+            { title: "31. Mukmin yang Kuat", arabic: "اَلْمُؤْمِنُ الْقَوِيُّ خَيْرٌ وَأَحَبُّ إِلَى اللَّهِ مِنَ الْمُؤْمِنِ الضَّعِيْفِ" },
+            { title: "32. Bersiwak", arabic: "السِّوَاكُ مَطْهَرَةٌ لِلْفَمِ مَرْضَاةٌ لِلرَّبِّ" },
+            { title: "33. Menutup Aurat", arabic: "اِحْفَظْ عَوْرَتَكَ" },
+            { title: "34. Berterima Kasih", arabic: "مَنْ لَا يَشْكُرُ النَّاسَ لَا يَشْكُرُ اللَّهَ" },
+            { title: "35. Tolong Menolong", arabic: "وَاللَّهُ فِي عَوْنِ الْعَبْدِ مَا كَانَ الْعَبْدُ فِي عَوْنِ أَخِيهِ" }
+        ];
+
+        const ADAB_LIST = ["Adab Makan & Minum", "Adab Kepada Orang Tua", "Adab Kepada Guru", "Adab Di Masjid", "Adab Berpakaian", "Adab Tidur", "Adab Membaca Al-Quran", "Adab Berteman", "Adab Di Jalan", "Adab Berbicara"];
+
+        // --- APP UTAMA ---
         const App = () => {
             const [user, setUser] = useState(null);
-            const [activeTab, setActiveTab] = useState('input'); // input | recap | rapor | students | settings
+            const [activeTab, setActiveTab] = useState('input');
             const [students, setStudents] = useState([]);
             const [records, setRecords] = useState([]);
             const [settings, setSettings] = useState({ tpa: '', teacher: '', logo: '' });
 
-            // State: Input Harian (Lengkap)
+            // State Input Harian (Lengkap)
             const [form, setForm] = useState({
-                date: new Date().toISOString().split('T')[0], studentId: '', readingType: 'iqro', 
-                iqroLevel: 'Iqro 1', iqroPage: '', iqroFluency: 'Lancar',
-                quranSurah: '1. Al-Fatihah', quranAyat: '', quranFluency: 'Lancar', 
+                date: new Date().toISOString().split('T')[0], studentId: '', 
+                readingType: 'iqro', iqroLevel: 'Iqro 1', iqroPage: '', iqroFluency: 'Lancar',
+                quranSurah: '1. Al-Fatihah', quranAyat: '', quranFluency: 'Lancar',
                 hafalans: [{surah:'', ayat:'', fluency:''}],
-                notes: ''
+                doa: '', hadits: '', adab: '', notes: ''
             });
 
-            // State: Rapor Manual (Detail)
+            // State Laporan/Rekap (Filter)
+            const [filterStudent, setFilterStudent] = useState('all');
+            const [filterStartDate, setFilterStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]);
+            const [filterEndDate, setFilterEndDate] = useState(new Date().toISOString().split('T')[0]);
+
+            // State Rapor Manual
             const [raporForm, setRaporForm] = useState({
-                studentId: '', periode: '', kelas: '',
-                materiQuran: '', // Text bebas
-                nilaiQuran: [
-                    { aspek: 'Kelancaran Hafalan', nilai: '' },
-                    { aspek: 'Ketepatan Tajwid', nilai: '' },
-                    { aspek: 'Makhorijul Huruf', nilai: '' },
-                    { aspek: 'Kekuatan Hafalan', nilai: '' },
-                    { aspek: 'Muraja\'ah', nilai: '' }
-                ],
-                doa: [{ materi: '', nilai: '' }],
-                hadits: [{ materi: '', nilai: '' }],
-                catatan: ''
+                studentId: '', periode: '', kelas: '', materiQuran: '',
+                nilaiQuran: [{ aspek: 'Kelancaran Hafalan', nilai: '' }, { aspek: 'Ketepatan Tajwid', nilai: '' }, { aspek: 'Makhorijul Huruf', nilai: '' }, { aspek: 'Kekuatan Hafalan', nilai: '' }, { aspek: 'Muraja\'ah', nilai: '' }],
+                doa: [{ materi: '', nilai: '' }], hadits: [{ materi: '', nilai: '' }], catatan: ''
             });
 
-            // --- LOAD DATA ---
+            // Data Santri Management
+            const [newStudent, setNewStudent] = useState('');
+            const [editingStudentId, setEditingStudentId] = useState(null);
+            const [editNameValue, setEditNameValue] = useState('');
+
+            // LOAD DATA
             useEffect(() => {
                 window.fb.onAuthStateChanged(window.auth, (u) => {
                     setUser(u);
                     if(u) {
-                        setSettings({
-                            tpa: localStorage.getItem('tpaName')||'', 
-                            teacher: localStorage.getItem('teacherName')||'',
-                            logo: localStorage.getItem('appLogo')||''
-                        });
-                        window.fb.onSnapshot(window.fb.query(window.fb.collection(window.db, 'users', u.uid, 'students'), window.fb.orderBy('name')), snap => 
-                            setStudents(snap.docs.map(d=>({id:d.id, ...d.data()})))
-                        );
-                        window.fb.onSnapshot(window.fb.query(window.fb.collection(window.db, 'users', u.uid, 'records'), window.fb.orderBy('created_at', 'desc')), snap => 
-                            setRecords(snap.docs.map(d=>({id:d.id, ...d.data()})))
-                        );
+                        setSettings({ tpa: localStorage.getItem('tpaName')||'', teacher: localStorage.getItem('teacherName')||'', logo: localStorage.getItem('appLogo')||'' });
+                        window.fb.onSnapshot(window.fb.query(window.fb.collection(window.db, 'users', u.uid, 'students'), window.fb.orderBy('name')), snap => setStudents(snap.docs.map(d=>({id:d.id, ...d.data()}))) );
+                        window.fb.onSnapshot(window.fb.query(window.fb.collection(window.db, 'users', u.uid, 'records'), window.fb.orderBy('created_at', 'desc')), snap => setRecords(snap.docs.map(d=>({id:d.id, ...d.data()}))) );
                     }
                 });
             }, []);
 
-            // --- ACTIONS ---
+            // ACTIONS
             const handleLogin = () => window.fb.signInWithPopup(window.auth, new window.fb.GoogleAuthProvider());
             const handleLogout = () => { if(confirm("Keluar?")) window.fb.signOut(window.auth); }
-            const saveSettings = () => { localStorage.setItem('tpaName', settings.tpa); localStorage.setItem('teacherName', settings.teacher); localStorage.setItem('appLogo', settings.logo); alert("Tersimpan!"); }
+            const saveSettings = () => { localStorage.setItem('tpaName', settings.tpa); localStorage.setItem('teacherName', settings.teacher); localStorage.setItem('appLogo', settings.logo); alert("Pengaturan Tersimpan!"); }
             const handleLogoUpload = (e) => { const f = e.target.files[0]; if(f) { const r = new FileReader(); r.onloadend = () => setSettings({...settings, logo: r.result}); r.readAsDataURL(f); } }
-
+            
             // Santri
-            const [newStudent, setNewStudent] = useState('');
             const saveStudent = async () => { if(newStudent){ await window.fb.addDoc(window.fb.collection(window.db, 'users', user.uid, 'students'), {name: newStudent}); setNewStudent(''); } }
             const deleteStudent = async (id) => { if(confirm("Hapus?")) await window.fb.deleteDoc(window.fb.doc(window.db, 'users', user.uid, 'students', id)); }
+            const startEditing = (s) => { setEditingStudentId(s.id); setEditNameValue(s.name); }
+            const saveEditedStudent = async () => { if(editNameValue) await window.fb.updateDoc(window.fb.doc(window.db, 'users', user.uid, 'students', editingStudentId), {name: editNameValue}); setEditingStudentId(null); }
 
-            // Input Harian Logika
+            // Input Harian Logic
             const addHafalanRow = () => setForm({...form, hafalans: [...form.hafalans, {surah:'', ayat:'', fluency:''}]});
             const updateHafalanRow = (idx, f, v) => { const n = [...form.hafalans]; n[idx][f] = v; setForm({...form, hafalans: n}); };
             const removeHafalanRow = (idx) => { const n = form.hafalans.filter((_, i) => i !== idx); setForm({...form, hafalans: n}); };
@@ -128,60 +206,74 @@
                 e.preventDefault();
                 if(!form.studentId) return alert("Pilih Santri!");
                 const sName = students.find(s=>s.id===form.studentId)?.name;
-                await window.fb.addDoc(window.fb.collection(window.db, 'users', user.uid, 'records'), { ...form, hafalans: form.hafalans.filter(h=>h.surah), studentName: sName, created_at: window.fb.serverTimestamp() });
+                await window.fb.addDoc(window.fb.collection(window.db, 'users', user.uid, 'records'), { 
+                    ...form, hafalans: form.hafalans.filter(h=>h.surah), studentName: sName, created_at: window.fb.serverTimestamp() 
+                });
                 alert("Data Harian Tersimpan! ✅");
-                setForm({...form, notes:'', iqroPage:'', quranAyat:'', hafalans:[{surah:'', ayat:'', fluency:''}]});
+                setForm({...form, notes:'', iqroPage:'', quranAyat:'', hafalans:[{surah:'', ayat:'', fluency:''}], doa:'', hadits:'', adab:''});
             }
             const deleteRecord = async (id) => { if(confirm("Hapus?")) await window.fb.deleteDoc(window.fb.doc(window.db, 'users', user.uid, 'records', id)); }
 
-            // Rapor Manual Logika
+            // Rapor Manual Logic
             const addRowRapor = (section) => setRaporForm({...raporForm, [section]: [...raporForm[section], { materi: '', nilai: '' }]});
             const removeRowRapor = (section, idx) => { const newRows = raporForm[section].filter((_, i) => i !== idx); setRaporForm({...raporForm, [section]: newRows}); }
             const updateRowRapor = (section, idx, field, value) => { const newRows = [...raporForm[section]]; newRows[idx][field] = value; setRaporForm({...raporForm, [section]: newRows}); }
             const updateNilaiQuran = (idx, value) => { const newNilai = [...raporForm.nilaiQuran]; newNilai[idx].nilai = value; setRaporForm({...raporForm, nilaiQuran: newNilai}); }
 
-            // PDF Rapor Manual
+            // PDF GENERATORS
+            const generateRecapPDF = () => {
+                const doc = new window.jspdf.jsPDF('landscape');
+                if(settings.logo) { try { doc.addImage(settings.logo, 'JPEG', 14, 10, 20, 20); } catch(e){} }
+                doc.setFontSize(16); doc.text("LAPORAN HARIAN NGAJI", 40, 20);
+                doc.setFontSize(12); doc.text(settings.tpa || "TPA/TPQ", 40, 26);
+                doc.setFontSize(10); doc.text(`Periode: ${filterStartDate} s/d ${filterEndDate}`, 14, 35);
+                
+                const filteredData = records.filter(r => (filterStudent==='all' || r.studentId===filterStudent) && r.date >= filterStartDate && r.date <= filterEndDate);
+                const rows = filteredData.map(r => [
+                    r.date, r.studentName, 
+                    r.readingType==='iqro' ? `${r.iqroLevel} Hal ${r.iqroPage}` : `${r.quranSurah}:${r.quranAyat}`,
+                    (r.hafalans||[]).map(h=>`${h.surah}:${h.ayat}`).join(', '),
+                    r.doa || '-', r.hadits || '-', r.adab || '-'
+                ]);
+
+                doc.autoTable({ head: [['Tgl', 'Nama', 'Materi Utama', 'Hafalan', 'Doa', 'Hadits', 'Adab']], body: rows, startY: 40, theme: 'grid' });
+                doc.save('Laporan_Harian.pdf');
+            }
+
             const generateRaporPDF = () => {
                 if(!raporForm.studentId) return alert("Pilih Santri Dulu!");
                 const doc = new window.jspdf.jsPDF();
                 const studentName = students.find(s=>s.id === raporForm.studentId)?.name || "Santri";
                 
-                // Kop
                 if(settings.logo) { try { doc.addImage(settings.logo, 'JPEG', 15, 10, 20, 20); } catch(e){} }
                 doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("RAPOR PERKEMBANGAN TAHFIDZ", 105, 20, { align: "center" });
                 doc.setFontSize(12); doc.setFont("helvetica", "normal"); doc.text(settings.tpa || "TPA / Rumah Qur'an", 105, 27, { align: "center" });
                 doc.line(15, 32, 195, 32);
 
-                // Identitas
                 doc.setFontSize(10);
                 doc.text(`Nama Santri : ${studentName}`, 15, 40); doc.text(`Kelas/Jilid : ${raporForm.kelas || '-'}`, 15, 46);
                 doc.text(`Periode     : ${raporForm.periode || '-'}`, 130, 40); doc.text(`Penguji     : ${settings.teacher || '-'}`, 130, 46);
 
                 let currentY = 55;
-                // A. QURAN
                 doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.setTextColor(0, 100, 0); doc.text("A. PERKEMBANGAN TAHFIDZ AL-QUR'AN", 15, currentY); currentY += 6;
                 doc.setFontSize(10); doc.setTextColor(0, 0, 0); doc.text("Materi / Surat yang Diujikan:", 15, currentY); 
                 doc.setFont("helvetica", "normal"); doc.text(raporForm.materiQuran || "-", 70, currentY); currentY += 4;
                 
-                doc.autoTable({ startY: currentY, head: [['Aspek Penilaian', 'Nilai / Predikat']], body: raporForm.nilaiQuran.map(n => [n.aspek, n.nilai]), theme: 'grid', headStyles: { fillColor: [22, 163, 74] }, columnStyles: { 0: {cellWidth: 100}, 1: {cellWidth: 80} }, margin: { left: 15 } });
+                doc.autoTable({ startY: currentY, head: [['Aspek Penilaian', 'Nilai / Predikat']], body: raporForm.nilaiQuran.map(n => [n.aspek, n.nilai]), theme: 'grid', headStyles: { fillColor: [22, 163, 74] }, margin: { left: 15 } });
                 currentY = doc.lastAutoTable.finalY + 10;
 
-                // B. DOA
                 doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.setTextColor(202, 138, 4); doc.text("B. HAFALAN DOA HARIAN", 15, currentY); currentY += 2;
                 doc.autoTable({ startY: currentY, head: [['No', 'Nama Doa', 'Nilai']], body: raporForm.doa.map((r, i) => [i+1, r.materi, r.nilai]), theme: 'grid', headStyles: { fillColor: [234, 179, 8] }, margin: { left: 15 } });
                 currentY = doc.lastAutoTable.finalY + 10;
 
-                // C. HADITS
                 doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.setTextColor(37, 99, 235); doc.text("C. HAFALAN HADITS", 15, currentY); currentY += 2;
                 doc.autoTable({ startY: currentY, head: [['No', 'Tema Hadits', 'Nilai']], body: raporForm.hadits.map((r, i) => [i+1, r.materi, r.nilai]), theme: 'grid', headStyles: { fillColor: [59, 130, 246] }, margin: { left: 15 } });
                 currentY = doc.lastAutoTable.finalY + 10;
 
-                // Catatan
                 if(currentY > 240) { doc.addPage(); currentY = 20; }
                 doc.setFillColor(245, 245, 245); doc.rect(15, currentY, 180, 25, 'F'); doc.setTextColor(0,0,0);
                 doc.text("Catatan Ustadz/Ustadzah:", 17, currentY + 6); doc.setFont("helvetica", "normal"); doc.text(raporForm.catatan || "-", 17, currentY + 12);
 
-                // TTD
                 const signY = currentY + 40;
                 doc.text("Mengetahui, Orang Tua", 15, signY); doc.text("( ........................... )", 15, signY + 25);
                 doc.text("Guru Pembimbing", 140, signY); doc.text(`( ${settings.teacher || "..........................."} )`, 140, signY + 25);
@@ -191,22 +283,27 @@
             if(!user) return ( <div className="min-h-screen flex items-center justify-center bg-gray-100"> <button onClick={handleLogin} className="bg-white p-6 rounded-xl shadow-xl font-bold text-blue-600">🔑 Login Google</button> </div> );
 
             return (
-                <div className="max-w-5xl mx-auto min-h-screen bg-white shadow-2xl flex flex-col md:flex-row">
-                    {/* SIDEBAR / MENU */}
-                    <div className="bg-slate-900 text-white md:w-64 p-4 flex flex-col gap-2 shrink-0">
-                        <div className="font-bold text-xl mb-6 flex items-center gap-2">{settings.logo ? <img src={settings.logo} className="w-8 h-8 bg-white rounded"/> : "📖"} App Ngaji</div>
-                        <button onClick={()=>setActiveTab('input')} className={`text-left p-3 rounded ${activeTab==='input'?'bg-blue-600':'hover:bg-slate-800'}`}>📝 Input Harian</button>
-                        <button onClick={()=>setActiveTab('recap')} className={`text-left p-3 rounded ${activeTab==='recap'?'bg-blue-600':'hover:bg-slate-800'}`}>📊 Rekap Harian</button>
-                        <button onClick={()=>setActiveTab('rapor')} className={`text-left p-3 rounded ${activeTab==='rapor'?'bg-blue-600':'hover:bg-slate-800'}`}>🎓 Buat Rapor (Manual)</button>
-                        <button onClick={()=>setActiveTab('students')} className={`text-left p-3 rounded ${activeTab==='students'?'bg-blue-600':'hover:bg-slate-800'}`}>👥 Data Santri</button>
-                        <button onClick={()=>setActiveTab('settings')} className={`text-left p-3 rounded ${activeTab==='settings'?'bg-blue-600':'hover:bg-slate-800'}`}>⚙️ Pengaturan</button>
-                        <button onClick={handleLogout} className="text-left p-3 rounded bg-red-600 mt-auto text-xs">Keluar</button>
+                <div className="max-w-7xl mx-auto min-h-screen bg-white shadow-2xl flex flex-col md:flex-row overflow-hidden">
+                    {/* SIDEBAR */}
+                    <div className="bg-slate-900 text-white md:w-72 p-6 flex flex-col gap-6 shrink-0">
+                        <div className="font-bold text-2xl flex items-center gap-3 border-b border-slate-700 pb-4">
+                            {settings.logo ? <img src={settings.logo} className="w-10 h-10 rounded object-cover bg-white"/> : <div className="bg-blue-600 p-2 rounded"><Icon name="book" className="text-white"/></div>} 
+                            Catatan Ngaji
+                        </div>
+                        <nav className="flex-1 space-y-3">
+                            <button onClick={()=>setActiveTab('input')} className={`w-full text-left px-4 py-3 rounded-xl flex gap-3 ${activeTab==='input'?'bg-blue-600 shadow-lg':'hover:bg-slate-800'}`}><Icon name="plus"/> Input Harian</button>
+                            <button onClick={()=>setActiveTab('recap')} className={`w-full text-left px-4 py-3 rounded-xl flex gap-3 ${activeTab==='recap'?'bg-blue-600 shadow-lg':'hover:bg-slate-800'}`}><Icon name="chart"/> Laporan Harian</button>
+                            <button onClick={()=>setActiveTab('rapor')} className={`w-full text-left px-4 py-3 rounded-xl flex gap-3 ${activeTab==='rapor'?'bg-blue-600 shadow-lg':'hover:bg-slate-800'}`}><Icon name="print"/> Rapor Manual</button>
+                            <button onClick={()=>setActiveTab('students')} className={`w-full text-left px-4 py-3 rounded-xl flex gap-3 ${activeTab==='students'?'bg-blue-600 shadow-lg':'hover:bg-slate-800'}`}><Icon name="users"/> Data Santri</button>
+                            <button onClick={()=>setActiveTab('settings')} className={`w-full text-left px-4 py-3 rounded-xl flex gap-3 ${activeTab==='settings'?'bg-blue-600 shadow-lg':'hover:bg-slate-800'}`}>⚙️ Pengaturan</button>
+                        </nav>
+                        <button onClick={handleLogout} className="text-left p-3 rounded bg-red-600 mt-auto text-xs flex gap-2"><Icon name="logout"/> Keluar</button>
                     </div>
 
                     {/* CONTENT */}
                     <div className="flex-1 p-6 bg-slate-50 overflow-y-auto h-screen">
                         
-                        {/* 1. INPUT HARIAN */}
+                        {/* 1. INPUT HARIAN (LENGKAP) */}
                         {activeTab === 'input' && (
                             <div className="animate-fade space-y-4">
                                 <h2 className="font-bold text-2xl text-slate-800">Input Setoran Harian</h2>
@@ -216,67 +313,47 @@
                                         <div><label className="text-xs font-bold text-gray-500">SANTRI</label><select className="w-full border p-2 rounded font-bold" value={form.studentId} onChange={e=>setForm({...form, studentId:e.target.value})}><option value="">- Pilih -</option>{students.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
                                     </div>
                                     
-                                    {/* Materi */}
                                     <div className="bg-blue-50 p-4 rounded border border-blue-100">
-                                        <div className="flex gap-4 mb-2">
-                                            <label className="font-bold"><input type="radio" checked={form.readingType==='iqro'} onChange={()=>setForm({...form, readingType:'iqro'})}/> IQRO</label>
-                                            <label className="font-bold"><input type="radio" checked={form.readingType==='quran'} onChange={()=>setForm({...form, readingType:'quran'})}/> AL-QURAN</label>
-                                        </div>
+                                        <div className="flex gap-4 mb-2"><label className="font-bold"><input type="radio" checked={form.readingType==='iqro'} onChange={()=>setForm({...form, readingType:'iqro'})}/> IQRO</label><label className="font-bold"><input type="radio" checked={form.readingType==='quran'} onChange={()=>setForm({...form, readingType:'quran'})}/> AL-QURAN</label></div>
                                         {form.readingType === 'iqro' ? (
-                                            <div className="flex gap-2">
-                                                <select className="border p-2 rounded" value={form.iqroLevel} onChange={e=>setForm({...form, iqroLevel:e.target.value})}>{IQRO_LEVELS.map(l=><option key={l}>{l}</option>)}</select>
-                                                <input placeholder="Halaman" className="border p-2 rounded w-24" value={form.iqroPage} onChange={e=>setForm({...form, iqroPage:e.target.value})}/>
-                                                <select className="border p-2 rounded" value={form.iqroFluency} onChange={e=>setForm({...form, iqroFluency:e.target.value})}><option>Lancar</option><option>Ulang</option></select>
-                                            </div>
+                                            <div className="flex gap-2"><select className="border p-2 rounded" value={form.iqroLevel} onChange={e=>setForm({...form, iqroLevel:e.target.value})}>{IQRO_LEVELS.map(l=><option key={l}>{l}</option>)}</select><input placeholder="Hal" className="border p-2 rounded w-24" value={form.iqroPage} onChange={e=>setForm({...form, iqroPage:e.target.value})}/><select className="border p-2 rounded" value={form.iqroFluency} onChange={e=>setForm({...form, iqroFluency:e.target.value})}><option>Lancar</option><option>Ulang</option></select></div>
                                         ) : (
-                                            <div className="flex gap-2">
-                                                <select className="border p-2 rounded flex-1" value={form.quranSurah} onChange={e=>setForm({...form, quranSurah:e.target.value})}>{SURAH_LIST.map(s=><option key={s}>{s}</option>)}</select>
-                                                <input placeholder="Ayat" className="border p-2 rounded w-24" value={form.quranAyat} onChange={e=>setForm({...form, quranAyat:e.target.value})}/>
-                                                <select className="border p-2 rounded" value={form.quranFluency} onChange={e=>setForm({...form, quranFluency:e.target.value})}><option>Lancar</option><option>Ulang</option></select>
-                                            </div>
+                                            <div className="flex gap-2"><select className="border p-2 rounded flex-1" value={form.quranSurah} onChange={e=>setForm({...form, quranSurah:e.target.value})}>{SURAH_LIST.map(s=><option key={s}>{s}</option>)}</select><input placeholder="Ayat" className="border p-2 rounded w-24" value={form.quranAyat} onChange={e=>setForm({...form, quranAyat:e.target.value})}/><select className="border p-2 rounded" value={form.quranFluency} onChange={e=>setForm({...form, quranFluency:e.target.value})}><option>Lancar</option><option>Ulang</option></select></div>
                                         )}
                                     </div>
 
-                                    {/* Hafalan Tambahan */}
                                     <div className="bg-purple-50 p-4 rounded border border-purple-100">
                                         <div className="flex justify-between mb-2"><span className="font-bold text-purple-800">Setoran Hafalan</span><button type="button" onClick={addHafalanRow} className="text-xs bg-white border px-2 rounded">+ Baris</button></div>
                                         {form.hafalans.map((h, i) => (
-                                            <div key={i} className="flex gap-2 mb-2">
-                                                <select className="flex-1 border p-1 rounded text-sm" value={h.surah} onChange={e=>updateHafalanRow(i, 'surah', e.target.value)}><option value="">- Surat -</option>{SURAH_LIST.map(s=><option key={s}>{s}</option>)}</select>
-                                                <input placeholder="Ayat" className="w-20 border p-1 rounded text-sm" value={h.ayat} onChange={e=>updateHafalanRow(i, 'ayat', e.target.value)}/>
-                                                <select className="w-24 border p-1 rounded text-sm" value={h.fluency} onChange={e=>updateHafalanRow(i, 'fluency', e.target.value)}><option value="">Nilai</option><option>Lancar</option><option>Ulang</option></select>
-                                                {form.hafalans.length>1 && <button type="button" onClick={()=>removeHafalanRow(i)} className="text-red-500">x</button>}
-                                            </div>
+                                            <div key={i} className="flex gap-2 mb-2"><select className="flex-1 border p-1 rounded text-sm" value={h.surah} onChange={e=>updateHafalanRow(i, 'surah', e.target.value)}><option value="">- Surat -</option>{SURAH_LIST.map(s=><option key={s}>{s}</option>)}</select><input placeholder="Ayat" className="w-20 border p-1 rounded text-sm" value={h.ayat} onChange={e=>updateHafalanRow(i, 'ayat', e.target.value)}/><select className="w-24 border p-1 rounded text-sm" value={h.fluency} onChange={e=>updateHafalanRow(i, 'fluency', e.target.value)}><option value="">Nilai</option><option>Lancar</option><option>Ulang</option></select>{form.hafalans.length>1 && <button type="button" onClick={()=>removeHafalanRow(i)} className="text-red-500">x</button>}</div>
                                         ))}
                                     </div>
 
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="bg-yellow-50 p-3 rounded border border-yellow-100"><label className="text-xs font-bold text-yellow-800">DOA HARIAN</label><select className="w-full border p-1 rounded mb-1" value={form.doa} onChange={e=>setForm({...form, doa:e.target.value})}><option value="">- Pilih -</option>{DOA_DATA.map(d=><option key={d.title} value={d.title}>{d.title}</option>)}</select></div>
+                                        <div className="bg-blue-50 p-3 rounded border border-blue-100"><label className="text-xs font-bold text-blue-800">HADITS</label><select className="w-full border p-1 rounded mb-1" value={form.hadits} onChange={e=>setForm({...form, hadits:e.target.value})}><option value="">- Pilih -</option>{HADITS_DATA.map(h=><option key={h.title} value={h.title}>{h.title}</option>)}</select></div>
+                                    </div>
+                                    <div className="bg-green-50 p-3 rounded border border-green-100"><label className="text-xs font-bold text-green-800">ADAB</label><select className="w-full border p-1 rounded mb-1" value={form.adab} onChange={e=>setForm({...form, adab:e.target.value})}><option value="">- Pilih -</option>{ADAB_LIST.map(a=><option key={a} value={a}>{a}</option>)}</select></div>
+
+                                    <textarea placeholder="Catatan Harian..." className="w-full border p-2 rounded" value={form.notes} onChange={e=>setForm({...form, notes:e.target.value})}/>
                                     <button className="w-full bg-blue-600 text-white py-3 rounded font-bold shadow hover:bg-blue-700">SIMPAN DATA HARIAN</button>
                                 </form>
                             </div>
                         )}
 
-                        {/* 2. REKAP HARIAN */}
+                        {/* 2. LAPORAN / REKAP (DENGAN FILTER & PDF) */}
                         {activeTab === 'recap' && (
                             <div className="animate-fade">
-                                <h2 className="font-bold text-2xl text-slate-800 mb-4">Riwayat Setoran Harian</h2>
+                                <h2 className="font-bold text-2xl text-slate-800 mb-4">Laporan Harian</h2>
+                                <div className="bg-white p-4 rounded-xl shadow border mb-4 flex flex-col md:flex-row gap-4 justify-between items-center">
+                                    <div className="flex gap-2"><input type="date" className="border p-2 rounded" value={filterStartDate} onChange={e=>setFilterStartDate(e.target.value)}/><span className="self-center">-</span><input type="date" className="border p-2 rounded" value={filterEndDate} onChange={e=>setFilterEndDate(e.target.value)}/></div>
+                                    <div className="flex gap-2 w-full md:w-auto"><select className="border p-2 rounded flex-1" value={filterStudent} onChange={e=>setFilterStudent(e.target.value)}><option value="all">Semua Santri</option>{students.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select><button onClick={generateRecapPDF} className="bg-red-600 text-white px-4 py-2 rounded font-bold flex items-center gap-2"><Icon name="download"/> PDF</button></div>
+                                </div>
                                 <div className="bg-white rounded-xl shadow border overflow-hidden">
-                                    <table className="w-full text-sm text-left">
-                                        <thead className="bg-slate-100 text-slate-600 font-bold">
-                                            <tr><th className="p-3">Tanggal</th><th className="p-3">Nama</th><th className="p-3">Materi</th><th className="p-3">Aksi</th></tr>
-                                        </thead>
-                                        <tbody className="divide-y">
-                                            {records.map(r=>(
-                                                <tr key={r.id} className="hover:bg-slate-50">
-                                                    <td className="p-3">{r.date}</td>
-                                                    <td className="p-3 font-bold">{r.studentName}</td>
-                                                    <td className="p-3">
-                                                        <div>{r.readingType==='iqro' ? `${r.iqroLevel} Hal ${r.iqroPage}` : `${r.quranSurah} : ${r.quranAyat}`}</div>
-                                                        {(r.hafalans||[]).filter(h=>h.surah).map((h,i)=><div key={i} className="text-xs text-purple-600">⭐ {h.surah}:{h.ayat} ({h.fluency})</div>)}
-                                                    </td>
-                                                    <td className="p-3"><button onClick={()=>deleteRecord(r.id)} className="text-red-500 hover:text-red-700"><lucide-trash size={16}/></button>Hapus</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
+                                    <table className="w-full text-sm text-left"><thead className="bg-slate-100 text-slate-600 font-bold"><tr><th className="p-3">Tgl</th><th className="p-3">Nama</th><th className="p-3">Materi</th><th className="p-3">Tambahan</th><th className="p-3">Aksi</th></tr></thead>
+                                        <tbody className="divide-y">{records.filter(r => (filterStudent==='all' || r.studentId===filterStudent) && r.date >= filterStartDate && r.date <= filterEndDate).map(r=>(
+                                            <tr key={r.id} className="hover:bg-slate-50"><td className="p-3">{r.date}</td><td className="p-3 font-bold">{r.studentName}</td><td className="p-3"><div>{r.readingType==='iqro' ? `${r.iqroLevel} Hal ${r.iqroPage}` : `${r.quranSurah}:${r.quranAyat}`}</div>{(r.hafalans||[]).filter(h=>h.surah).map((h,i)=><div key={i} className="text-xs text-purple-600">⭐ {h.surah}:{h.ayat} ({h.fluency})</div>)}</td><td className="p-3 text-xs">{r.doa && <div className="text-yellow-700">🤲 {r.doa}</div>}{r.hadits && <div className="text-blue-700">📜 {r.hadits}</div>}{r.adab && <div className="text-green-700">🕌 {r.adab}</div>}</td><td className="p-3"><button onClick={()=>deleteRecord(r.id)} className="text-red-500 hover:text-red-700"><Icon name="trash"/></button></td></tr>
+                                        ))}</tbody>
                                     </table>
                                 </div>
                             </div>
@@ -285,49 +362,68 @@
                         {/* 3. RAPOR MANUAL */}
                         {activeTab === 'rapor' && (
                             <div className="animate-fade bg-white p-6 rounded-xl shadow-lg border">
-                                <h2 className="font-bold text-xl mb-6 text-center text-slate-800 border-b pb-4">🎓 FORM RAPOR MANUAL</h2>
-                                {/* Identitas */}
+                                <h2 className="font-bold text-xl mb-6 text-center text-slate-800 border-b pb-4">🎓 RAPOR SEMESTER (MANUAL)</h2>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6 bg-slate-50 p-4 rounded-lg">
                                     <div><label className="text-xs font-bold text-gray-500">SANTRI</label><select className="w-full border p-2 rounded font-bold" value={raporForm.studentId} onChange={e=>setRaporForm({...raporForm, studentId:e.target.value})}><option value="">- Pilih -</option>{students.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
                                     <div><label className="text-xs font-bold text-gray-500">PERIODE</label><input placeholder="Januari 2026" className="w-full border p-2 rounded" value={raporForm.periode} onChange={e=>setRaporForm({...raporForm, periode:e.target.value})}/></div>
                                     <div><label className="text-xs font-bold text-gray-500">KELAS</label><input placeholder="Tahfidz" className="w-full border p-2 rounded" value={raporForm.kelas} onChange={e=>setRaporForm({...raporForm, kelas:e.target.value})}/></div>
                                 </div>
-
-                                {/* A. QURAN */}
                                 <div className="mb-6 border rounded-lg overflow-hidden">
                                     <div className="bg-green-100 p-3 font-bold text-green-800">A. PENILAIAN AL-QUR'AN</div>
                                     <div className="p-4 space-y-4">
                                         <div><label className="font-bold text-sm block mb-1">Materi / Surat yang Diujikan:</label><textarea placeholder="Contoh: Surat An-Naba s/d Al-Insyiqaq (Lancar)" className="w-full border p-2 rounded h-16" value={raporForm.materiQuran} onChange={e=>setRaporForm({...raporForm, materiQuran:e.target.value})}/></div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {raporForm.nilaiQuran.map((item, idx) => (
-                                                <div key={idx} className="flex flex-col"><label className="text-xs font-bold text-gray-500 mb-1">{item.aspek.toUpperCase()}</label><input placeholder="Nilai (A/B/C atau 90)" className="border p-2 rounded font-bold" value={item.nilai} onChange={e=>updateNilaiQuran(idx, e.target.value)}/></div>
-                                            ))}
-                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">{raporForm.nilaiQuran.map((item, idx) => (<div key={idx} className="flex flex-col"><label className="text-xs font-bold text-gray-500 mb-1">{item.aspek.toUpperCase()}</label><input placeholder="Nilai (A/B/C)" className="border p-2 rounded font-bold" value={item.nilai} onChange={e=>updateNilaiQuran(idx, e.target.value)}/></div>))}</div>
                                     </div>
                                 </div>
-
-                                {/* B & C. DOA HADITS */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                    <div className="border rounded-lg p-3 bg-yellow-50">
-                                        <div className="flex justify-between mb-2"><span className="font-bold text-yellow-800">B. DOA</span><button onClick={()=>addRowRapor('doa')} className="text-xs bg-white border px-2 rounded">+ Baris</button></div>
-                                        {raporForm.doa.map((r, i) => (<div key={i} className="flex gap-2 mb-2"><input placeholder="Nama Doa" className="flex-1 border p-1 rounded text-sm" value={r.materi} onChange={e=>updateRowRapor('doa', i, 'materi', e.target.value)}/><input placeholder="Nilai" className="w-20 border p-1 rounded text-sm" value={r.nilai} onChange={e=>updateRowRapor('doa', i, 'nilai', e.target.value)}/>{raporForm.doa.length>1 && <button onClick={()=>removeRowRapor('doa',i)} className="text-red-500 font-bold">x</button>}</div>))}
-                                    </div>
-                                    <div className="border rounded-lg p-3 bg-blue-50">
-                                        <div className="flex justify-between mb-2"><span className="font-bold text-blue-800">C. HADITS</span><button onClick={()=>addRowRapor('hadits')} className="text-xs bg-white border px-2 rounded">+ Baris</button></div>
-                                        {raporForm.hadits.map((r, i) => (<div key={i} className="flex gap-2 mb-2"><input placeholder="Tema Hadits" className="flex-1 border p-1 rounded text-sm" value={r.materi} onChange={e=>updateRowRapor('hadits', i, 'materi', e.target.value)}/><input placeholder="Nilai" className="w-20 border p-1 rounded text-sm" value={r.nilai} onChange={e=>updateRowRapor('hadits', i, 'nilai', e.target.value)}/>{raporForm.hadits.length>1 && <button onClick={()=>removeRowRapor('hadits',i)} className="text-red-500 font-bold">x</button>}</div>))}
-                                    </div>
+                                    <div className="border rounded-lg p-3 bg-yellow-50"><div className="flex justify-between mb-2"><span className="font-bold text-yellow-800">B. DOA</span><button onClick={()=>addRowRapor('doa')} className="text-xs bg-white border px-2 rounded">+ Baris</button></div>{raporForm.doa.map((r, i) => (<div key={i} className="flex gap-2 mb-2"><input placeholder="Nama Doa" className="flex-1 border p-1 rounded text-sm" value={r.materi} onChange={e=>updateRowRapor('doa', i, 'materi', e.target.value)}/><input placeholder="Nilai" className="w-20 border p-1 rounded text-sm" value={r.nilai} onChange={e=>updateRowRapor('doa', i, 'nilai', e.target.value)}/>{raporForm.doa.length>1 && <button onClick={()=>removeRowRapor('doa',i)} className="text-red-500 font-bold">x</button>}</div>))}</div>
+                                    <div className="border rounded-lg p-3 bg-blue-50"><div className="flex justify-between mb-2"><span className="font-bold text-blue-800">C. HADITS</span><button onClick={()=>addRowRapor('hadits')} className="text-xs bg-white border px-2 rounded">+ Baris</button></div>{raporForm.hadits.map((r, i) => (<div key={i} className="flex gap-2 mb-2"><input placeholder="Tema Hadits" className="flex-1 border p-1 rounded text-sm" value={r.materi} onChange={e=>updateRowRapor('hadits', i, 'materi', e.target.value)}/><input placeholder="Nilai" className="w-20 border p-1 rounded text-sm" value={r.nilai} onChange={e=>updateRowRapor('hadits', i, 'nilai', e.target.value)}/>{raporForm.hadits.length>1 && <button onClick={()=>removeRowRapor('hadits',i)} className="text-red-500 font-bold">x</button>}</div>))}</div>
                                 </div>
-
                                 <div className="mb-6"><label className="font-bold text-sm block mb-1">Catatan Ustadz/Ustadzah:</label><textarea className="w-full border p-2 rounded h-20" placeholder="Pesan untuk orang tua..." value={raporForm.catatan} onChange={e=>setRaporForm({...raporForm, catatan:e.target.value})}/></div>
                                 <button onClick={generateRaporPDF} className="w-full bg-slate-800 text-white py-4 rounded-xl font-bold shadow hover:bg-slate-700 flex justify-center items-center gap-2">🖨️ CETAK RAPOR PDF</button>
                             </div>
                         )}
 
-                        {/* 4. SETTING & SANTRI */}
-                        {(activeTab === 'settings' || activeTab === 'students') && (
-                            <div className="animate-fade space-y-6">
-                                {activeTab === 'settings' && <div className="bg-white p-4 rounded-xl shadow border"><h3 className="font-bold mb-2">Lembaga</h3><input type="file" onChange={handleLogoUpload} className="mb-2 text-sm"/><input placeholder="Nama TPA" className="w-full border p-2 rounded mb-2" value={settings.tpa} onChange={e=>setSettings({...settings, tpa:e.target.value})}/><input placeholder="Nama Guru" className="w-full border p-2 rounded mb-2" value={settings.teacher} onChange={e=>setSettings({...settings, teacher:e.target.value})}/><button onClick={saveSettings} className="bg-green-600 text-white px-4 py-2 rounded">Simpan</button></div>}
-                                {activeTab === 'students' && <div className="bg-white p-4 rounded-xl shadow border"><h3 className="font-bold mb-2">Data Santri</h3><div className="flex gap-2 mb-4"><input placeholder="Nama Baru..." className="flex-1 border p-2 rounded" value={newStudent} onChange={e=>setNewStudent(e.target.value)}/><button onClick={saveStudent} className="bg-blue-600 text-white px-4 rounded">Tambah</button></div>{students.map(s=>(<div key={s.id} className="flex justify-between border-b py-2"><span>{s.name}</span><button onClick={()=>deleteStudent(s.id)} className="text-red-500 text-xs">Hapus</button></div>))}</div>}
+                        {/* 4. SETTING (LENGKAP) */}
+                        {activeTab === 'settings' && (
+                            <div className="animate-fade">
+                                <h2 className="font-bold text-2xl text-slate-800 mb-4">Pengaturan & Lembaga</h2>
+                                <div className="bg-white p-6 rounded-xl shadow border space-y-4">
+                                    <div><label className="block text-sm font-bold text-gray-700 mb-1">Logo Lembaga (Untuk Kop Surat)</label><input type="file" onChange={handleLogoUpload} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>{settings.logo && <img src={settings.logo} className="h-16 mt-2 rounded border"/>}</div>
+                                    <div><label className="block text-sm font-bold text-gray-700 mb-1">Nama TPA / Lembaga</label><input className="w-full border p-2 rounded" placeholder="Contoh: TPA Ar-Rahman" value={settings.tpa} onChange={e=>setSettings({...settings, tpa:e.target.value})}/></div>
+                                    <div><label className="block text-sm font-bold text-gray-700 mb-1">Nama Guru / Ustadz / Ustadzah</label><input className="w-full border p-2 rounded" placeholder="Contoh: Ustadzah Aisyah" value={settings.teacher} onChange={e=>setSettings({...settings, teacher:e.target.value})}/></div>
+                                    <button onClick={saveSettings} className="bg-green-600 text-white px-6 py-2 rounded-lg font-bold shadow hover:bg-green-700">SIMPAN PENGATURAN</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 5. DATA SANTRI */}
+                        {activeTab === 'students' && (
+                            <div className="animate-fade">
+                                <h2 className="font-bold text-2xl text-slate-800 mb-4">Kelola Data Santri</h2>
+                                <div className="bg-white p-6 rounded-xl shadow border">
+                                    <div className="flex gap-2 mb-6">
+                                        <input placeholder="Nama Santri Baru..." className="flex-1 border p-2 rounded" value={newStudent} onChange={e=>setNewStudent(e.target.value)}/>
+                                        <button onClick={saveStudent} className="bg-blue-600 text-white px-6 rounded-lg font-bold">TAMBAH</button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {students.map(s=>(
+                                            <div key={s.id} className="flex justify-between items-center p-3 border-b hover:bg-gray-50">
+                                                {editingStudentId === s.id ? (
+                                                    <div className="flex gap-2 flex-1"><input value={editNameValue} onChange={e=>setEditNameValue(e.target.value)} className="border p-1 rounded w-full"/><button onClick={saveEditedStudent} className="bg-green-500 text-white px-2 rounded text-xs">Simpan</button></div>
+                                                ) : (
+                                                    <div className="flex justify-between w-full items-center">
+                                                        <span className="font-bold text-gray-700">{s.name}</span>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={()=>{setEditingStudentId(s.id); setEditNameValue(s.name)}} className="text-blue-500 hover:text-blue-700 text-sm"><Icon name="edit"/></button>
+                                                            <button onClick={()=>deleteStudent(s.id)} className="text-red-500 hover:text-red-700 text-sm"><Icon name="trash"/></button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         )}
 
