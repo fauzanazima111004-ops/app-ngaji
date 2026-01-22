@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catatan Ngaji Pro - Ultimate</title>
+    <title>App Ngaji - Rapor Manual</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -14,33 +14,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .font-arabic { font-family: 'Amiri', serif; line-height: 2.2; direction: rtl; }
-        .animate-fade { animation: fadeIn 0.5s ease-out; }
-        @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .modal-overlay { background-color: rgba(0,0,0,0.5); }
-
-        /* CSS KHUSUS CETAK (Agar Rapor Rapi di Kertas A4) */
-        @media print {
-            body * { visibility: hidden; }
-            #area-print, #area-print * { visibility: visible; }
-            #area-print { 
-                position: absolute; 
-                left: 0; 
-                top: 0; 
-                width: 100%; 
-                margin: 0; 
-                padding: 0;
-                background: white; 
-            }
-            .no-print { display: none !important; }
-            /* Paksa background warna tercetak */
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        }
+        .animate-fade { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -49,9 +27,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, query, onSnapshot, serverTimestamp, setDoc, getDoc, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, deleteDoc, updateDoc, doc, query, onSnapshot, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // --- KODE FIREBASE ANDA ---
+        // --- PASTE CONFIG FIREBASE BAPAK DI SINI ---
         const firebaseConfig = {
             apiKey: "AIzaSyD0XGoRIIntaMiD-xuJUJsA38-jwiz3zxs",
             authDomain: "catatan-ngaji-app.firebaseapp.com",
@@ -64,116 +42,33 @@
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
         window.auth = getAuth(app);
-        window.fb = { collection, addDoc, deleteDoc, updateDoc, doc, query, onSnapshot, serverTimestamp, setDoc, getDoc, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, orderBy, limit };
+        window.fb = { collection, addDoc, deleteDoc, updateDoc, doc, query, onSnapshot, serverTimestamp, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, orderBy };
     </script>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef, useMemo } = React;
+        const { useState, useEffect, useRef } = React;
 
-        /* ================= DATA DATABASE ================= */
-        const SURAH_LIST = ["1. Al-Fatihah", "2. Al-Baqarah", "3. Ali 'Imran", "4. An-Nisa", "5. Al-Maidah", "6. Al-An'am", "7. Al-A'raf", "8. Al-Anfal", "9. At-Taubah", "10. Yunus", "11. Hud", "12. Yusuf", "13. Ar-Ra'd", "14. Ibrahim", "15. Al-Hijr", "16. An-Nahl", "17. Al-Isra", "18. Al-Kahf", "19. Maryam", "20. Taha", "21. Al-Anbiya", "22. Al-Hajj", "23. Al-Mu'minun", "24. An-Nur", "25. Al-Furqan", "26. Asy-Syu'ara", "27. An-Naml", "28. Al-Qasas", "29. Al-Ankabut", "30. Ar-Rum", "31. Luqman", "32. As-Sajdah", "33. Al-Ahzab", "34. Saba'", "35. Fatir", "36. Yasin", "37. As-Saffat", "38. Sad", "39. Az-Zumar", "40. Al-Mu'min", "41. Fussilat", "42. Asy-Syura", "43. Az-Zukhruf", "44. Ad-Dukhan", "45. Al-Jasiyah", "46. Al-Ahqaf", "47. Muhammad", "48. Al-Fath", "49. Al-Hujurat", "50. Qaf", "51. Az-Zariyat", "52. At-Tur", "53. An-Najm", "54. Al-Qamar", "55. Ar-Rahman", "56. Al-Waqi'ah", "57. Al-Hadid", "58. Al-Mujadilah", "59. Al-Hasyr", "60. Al-Mumtahanah", "61. As-Saff", "62. Al-Jumu'ah", "63. Al-Munafiqun", "64. At-Tagabun", "65. At-Talaq", "66. At-Tahrim", "67. Al-Mulk", "68. Al-Qalam", "69. Al-Haqqah", "70. Al-Ma'arij", "71. Nuh", "72. Al-Jinn", "73. Al-Muzzammil", "74. Al-Muddassir", "75. Al-Qiyamah", "76. Al-Insan", "77. Al-Mursalat", "78. An-Naba", "79. An-Nazi'at", "80. 'Abasa", "81. At-Takwir", "82. Al-Infitar", "83. Al-Mutaffifin", "84. Al-Insyiqaq", "85. Al-Buruj", "86. At-Tariq", "87. Al-A'la", "88. Al-Ghasyiyah", "89. Al-Fajr", "90. Al-Balad", "91. Asy-Syams", "92. Al-Lail", "93. Ad-Duha", "94. Asy-Syarh", "95. At-Tin", "96. Al-'Alaq", "97. Al-Qadr", "98. Al-Bayyinah", "99. Az-Zalzalah", "100. Al-'Adiyat", "101. Al-Qari'ah", "102. At-Takasur", "103. Al-'Asr", "104. Al-Humazah", "105. Al-Fil", "106. Quraisy", "107. Al-Ma'un", "108. Al-Kausar", "109. Al-Kafirun", "110. An-Nasr", "111. Al-Lahab", "112. Al-Ikhlas", "113. Al-Falaq", "114. An-Nas"];
-        const IQRO_LEVELS = ["Iqro 1", "Iqro 2", "Iqro 3", "Iqro 4", "Iqro 5", "Iqro 6"];
-        const DOA_DATA = [
-            { title: "Mohon Ilmu Bermanfaat", arabic: "اَللَّهُمَّ إِنِّيْ أَسْأَلُكَ عِلْمًا نَافِعًا...", meaning: "Ya Allah! Sesungguhnya aku mohon kepadaMu ilmu yang bermanfaat..." },
-            { title: "Untuk Kedua Orangtua", arabic: "اَللَّهُمَّ اغْفِرْلِيْ وَلِوَالِدَيَّ وَارْحَمْهُمَا...", meaning: "Ya Allah ampunilah dosaku dan dosa kedua orang tuaku..." },
-            { title: "Sebelum Makan", arabic: "بِسْمِ اللهِ", meaning: "Dengan menyebut nama Allah." },
-            { title: "Sesudah Makan", arabic: "الْحَمْدُ لِلَّهِ الَّذِيْ أَطْعَمَنِيْ هَذَا...", meaning: "Segala puji bagi Allah yang memberi makan ini kepadaku..." },
-            { title: "Masuk Kamar Mandi", arabic: "اَللَّهُمَّ إِنِّيْ أَعُوْذُ بِكَ مِنَ الْخُبُثِ...", meaning: "Ya Allah, sesungguhnya aku berlindung kepadaMu..." },
-            { title: "Keluar Kamar Mandi", arabic: "غُفْرَانَكَ", meaning: "Aku mohon ampun kepadaMu ya Allah." },
-            { title: "Sebelum Tidur", arabic: "بِاسْمِكَ اللَّهُمَّ أَمُوْتُ وَأَحْيَا", meaning: "Dengan menyebut namaMu, ya Allah! Aku mati dan aku hidup." },
-            { title: "Bangun Tidur", arabic: "اَلْحَمْدُ لِلَّهِ الَّذِيْ أَحْيَانَا بَعْدَ مَا أَمَاتَنَا...", meaning: "Segala puji bagi Allah, yang menghidupkan kami..." },
-            { title: "Masuk Masjid", arabic: "اَللَّهُمَّ افْتَحْ لِيْ أَبْوَابَ رَحْمَتِكَ", meaning: "Ya Allah, bukalah untukku pintu-pintu rahmat-Mu." },
-            { title: "Keluar Masjid", arabic: "اَللَّهُمَّ إِنِّيْ أَسْأَلُكَ مِنْ فَضْلِكَ", meaning: "Ya Allah, sesungguhnya aku memohon karunia-Mu." },
-            { title: "Kebaikan Dunia Akhirat", arabic: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً...", meaning: "Wahai Tuhan kami, berilah kami kebaikan di dunia dan akhirat." }
-        ];
-        const HADITS_DATA = [
-            { title: "Tentang Niat", arabic: "إِنَّمَا اْلأَعْمَالُ بِالنِّيَّاتِ", meaning: "Sesungguhnya amal itu tergantung dari niatnya." },
-            { title: "Kebersihan", arabic: "الظُّهُوْرُ شَطْرُ اْلإِيْمَانِ", meaning: "Kebersihan itu sebagian dari iman." },
-            { title: "Senyum Sedekah", arabic: "تَبَسُّمُكَ فِيْ وَجْهِ أَخِيْكَ لَكَ صَدَقَةٌ", meaning: "Senyummu di hadapan saudaramu adalah sedekah." },
-            { title: "Marah", arabic: "لاَ تَغْضَبْ وَلَكَ الْجَنَّةُ", meaning: "Janganlah engkau marah, niscaya bagimu surga." },
-            { title: "Menuntut Ilmu", arabic: "طَلَبُ الْعِلْمِ فَرِيْضَةٌ عَلَى كُلِّ مُسْلِمٍ", meaning: "Menuntut ilmu itu wajib atas setiap muslim." },
-            { title: "Tangan Diatas", arabic: "اَلْيَدُ الْعُلْيَا خَيْرٌ مِنَ الْيَدِ السُّفْلَى", meaning: "Tangan di atas lebih baik dari pada tangan di bawah." },
-            { title: "Surga Ibu", arabic: "الْجَنَّةُ تَحْتَ أَقْدَامِ الْأُمَّهَاتِ", meaning: "Surga itu di bawah telapak kaki ibu." },
-            { title: "Sebaik-baik Manusia", arabic: "خَيْرُ النَّاسِ أَنْفَعُهُمْ لِلنَّاسِ", meaning: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia." }
-        ];
-        const ADAB_LIST = ["Adab Makan & Minum", "Adab Kepada Orang Tua", "Adab Kepada Guru", "Adab Di Masjid", "Adab Berpakaian", "Adab Tidur", "Adab Membaca Al-Quran", "Adab Berteman", "Adab Di Jalan", "Adab Berbicara"];
-
-        // --- HELPER COMPONENTS ---
-        const Icon = ({name, size=18, className=''}) => {
-            const i = {
-                book: "📖", users: "👥", chart: "📊", plus: "➕", trash: "🗑️", save: "💾", 
-                check: "✅", alert: "⚠️", refresh: "🔄", login: "🔑", logout: "🚪", 
-                sun: "☀️", moon: "🌙", star: "⭐", heart: "❤️", search: "🔍", filter: "🌪️",
-                calendar: "📅", download: "📥", upload: "📤", edit: "✏️", minus: "⛔", file: "📝",
-                print: "🖨️", left: "⬅️"
-            };
-            return <span className={`mr-1 inline-block ${className}`} style={{fontSize: size}}>{i[name]||"•"}</span>;
-        }
-
-        const generateListPDF = (data, info, filterName, startDate, endDate, evaluations) => {
-            if(!window.jspdf) return alert("Sistem PDF sedang memuat...");
-            const doc = new window.jspdf.jsPDF('landscape');
-            if(info.logo) { try { doc.addImage(info.logo, 'JPEG', 14, 15, 25, 25); } catch(e) {} }
-            const startX = info.logo ? 45 : 14;
-            
-            doc.setFontSize(18); doc.text("LAPORAN PERKEMBANGAN NGAJI", startX, 22);
-            doc.setFontSize(10); doc.text(`Guru: ${info.teacher || '-'} | Tempat: ${info.tpa || '-'}`, startX, 28);
-            doc.text(`Santri: ${filterName === 'all' ? 'SEMUA SANTRI' : filterName}`, startX, 33);
-            doc.text(`Periode: ${new Date(startDate).toLocaleDateString('id-ID')} s/d ${new Date(endDate).toLocaleDateString('id-ID')}`, startX, 38);
-            
-            let finalY = 55;
-            const rows = data.map(r => {
-                const hafalanText = (r.hafalans || []).map(h => `⭐ ${h.surah}:${h.ayat} (${h.fluency.split('-')[0]})`).join('\n') || (r.hafalanSurah ? `⭐ ${r.hafalanSurah}:${r.hafalanAyat} (${r.hafalanFluency.split('-')[0]})` : '-');
-                const extras = [];
-                if(r.doa && r.doaFluency) extras.push(`${r.doa} (${r.doaFluency.split('-')[0]})`);
-                if(r.hadits && r.haditsFluency) extras.push(`${r.hadits} (${r.haditsFluency.split('-')[0]})`);
-                if(r.adab && r.adabFluency) extras.push(`${r.adab} (${r.adabFluency.split('-')[0]})`);
-
-                return [
-                    new Date(r.date).toLocaleDateString('id-ID', {day:'2-digit', month:'2-digit'}),
-                    r.studentName,
-                    r.readingType==='iqro' ? `${r.iqroLevel} Hal ${r.iqroPage}` : `${r.quranSurah}:${r.quranAyat}`,
-                    r.readingType==='iqro' ? r.iqroFluency.split(' - ')[0] : r.quranFluency.split(' - ')[0],
-                    hafalanText,
-                    extras.join('\n') || '-',
-                    r.notes || '-'
-                ];
-            });
-            
-            doc.autoTable({ head: [["Tgl", "Nama", "Materi", "Nilai", "Hafalan", "Tambahan", "Catatan"]], body: rows, startY: 50, theme: 'grid', styles: { fontSize: 8 }, headStyles: { fillColor: [30, 41, 59] }, didDrawPage: (d) => finalY = d.cursor.y });
-            doc.save(`Laporan_${filterName}.pdf`);
-        }
-
-        // --- APP UTAMA ---
+        // --- KOMPONEN UTAMA ---
         const App = () => {
             const [user, setUser] = useState(null);
-            const [activeTab, setActiveTab] = useState('input');
+            const [activeTab, setActiveTab] = useState('input'); // input | students | rapor
             const [students, setStudents] = useState([]);
             const [records, setRecords] = useState([]);
-            const [evaluations, setEvaluations] = useState([]);
             const [settings, setSettings] = useState({ tpa: '', teacher: '', logo: '' });
-            
-            const [raporModalOpen, setRaporModalOpen] = useState(false);
-            const [selectedStudentForRapor, setSelectedStudentForRapor] = useState(null);
-            const [raporForm, setRaporForm] = useState({ period: '', content: '' });
 
-            // State untuk Tampilan Cetak Rapor (A4)
-            const [printViewData, setPrintViewData] = useState(null); // Jika null = Tampilan App, Jika ada object = Tampilan Cetak
-
-            const [filterStudent, setFilterStudent] = useState('all');
-            const [filterStartDate, setFilterStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0]);
-            const [filterEndDate, setFilterEndDate] = useState(new Date().toISOString().split('T')[0]);
-
-            const [form, setForm] = useState({
-                date: new Date().toISOString().split('T')[0], studentId: '', readingType: 'iqro', iqroLevel: 'Iqro 1', iqroPage: '', iqroFluency: 'L - Lancar',
-                quranSurah: '1. Al-Fatihah', quranAyat: '', quranFluency: 'L - Lancar', hafalans: [{surah:'', ayat:'', fluency:''}],
-                doa: '', doaFluency: '', hadits: '', haditsFluency: '', adab: '', adabFluency: '', notes: ''
+            // State untuk Rapor Manual
+            const [raporMode, setRaporMode] = useState(false); // Mode buat rapor
+            const [raporForm, setRaporForm] = useState({
+                studentId: '',
+                periode: '',
+                // Data tabel manual (Array kosong untuk diisi user)
+                quran: [{ materi: '', ayat: '', nilai: '' }], 
+                doa: [{ materi: '', nilai: '' }],
+                hadits: [{ materi: '', nilai: '' }],
+                catatan: ''
             });
-            const [newStudent, setNewStudent] = useState('');
-            const fileInputRef = useRef(null);
-            const [editingStudentId, setEditingStudentId] = useState(null);
-            const [editNameValue, setEditNameValue] = useState('');
 
+            // Load Data saat Login
             useEffect(() => {
                 window.fb.onAuthStateChanged(window.auth, (u) => {
                     setUser(u);
@@ -183,429 +78,308 @@
                             teacher: localStorage.getItem('teacherName')||'',
                             logo: localStorage.getItem('appLogo')||''
                         });
+                        // Load Santri
+                        window.fb.onSnapshot(window.fb.query(window.fb.collection(window.db, 'users', u.uid, 'students'), window.fb.orderBy('name')), snap => 
+                            setStudents(snap.docs.map(d=>({id:d.id, ...d.data()})))
+                        );
+                        // Load Riwayat Harian (Opsional, buat history aja)
+                        window.fb.onSnapshot(window.fb.query(window.fb.collection(window.db, 'users', u.uid, 'records'), window.fb.orderBy('created_at', 'desc')), snap => 
+                            setRecords(snap.docs.map(d=>({id:d.id, ...d.data()})))
+                        );
                     }
                 });
             }, []);
 
-            useEffect(() => {
-                if(!user) return;
-                const { collection, query, onSnapshot, orderBy } = window.fb;
-                
-                const unsubS = onSnapshot(query(collection(window.db, 'users', user.uid, 'students'), orderBy('name')), snap => 
-                    setStudents(snap.docs.map(d=>({id:d.id, ...d.data()})))
-                );
-                const unsubR = onSnapshot(query(collection(window.db, 'users', user.uid, 'records'), orderBy('created_at', 'desc')), snap => 
-                    setRecords(snap.docs.map(d=>({id:d.id, ...d.data()})))
-                );
-                const unsubE = onSnapshot(query(collection(window.db, 'users', user.uid, 'evaluations'), orderBy('created_at', 'desc')), snap => 
-                    setEvaluations(snap.docs.map(d=>({id:d.id, ...d.data()})))
-                );
-
-                return () => { unsubS(); unsubR(); unsubE(); }
-            }, [user?.uid]);
-
+            // --- FUNGSI AUTH & SETTING ---
             const handleLogin = () => window.fb.signInWithPopup(window.auth, new window.fb.GoogleAuthProvider());
             const handleLogout = () => { if(confirm("Keluar?")) window.fb.signOut(window.auth); }
-            
-            const saveStudent = async () => { if(newStudent) { await window.fb.addDoc(window.fb.collection(window.db, 'users', user.uid, 'students'), {name: newStudent, name_lower: newStudent.toLowerCase()}); setNewStudent(''); alert("Santri Ditambahkan!"); } }
-            const deleteStudent = async (id) => { if(confirm("Hapus?")) await window.fb.deleteDoc(window.fb.doc(window.db, 'users', user.uid, 'students', id)); }
-            const startEditing = (s) => { setEditingStudentId(s.id); setEditNameValue(s.name); }
-            const saveEditedStudent = async () => { if(editNameValue) await window.fb.updateDoc(window.fb.doc(window.db, 'users', user.uid, 'students', editingStudentId), {name: editNameValue}); setEditingStudentId(null); }
-
-            const openRaporModal = (s) => { setSelectedStudentForRapor(s); setRaporModalOpen(true); setRaporForm({period:'', content:''}); }
-            const saveRapor = async () => {
-                if(!raporForm.period || !raporForm.content) return alert("Lengkapi data!");
-                await window.fb.addDoc(window.fb.collection(window.db, 'users', user.uid, 'evaluations'), {
-                    studentId: selectedStudentForRapor.id, period: raporForm.period, content: raporForm.content, created_at: window.fb.serverTimestamp()
-                });
-                setRaporForm({period:'', content:''});
-            }
-            const deleteRapor = async (id) => { if(confirm("Hapus?")) await window.fb.deleteDoc(window.fb.doc(window.db, 'users', user.uid, 'evaluations', id)); }
-
-            const saveSettings = () => { localStorage.setItem('tpaName', settings.tpa); localStorage.setItem('teacherName', settings.teacher); localStorage.setItem('appLogo', settings.logo); alert("Tersimpan!"); }
+            const saveSettings = () => { localStorage.setItem('tpaName', settings.tpa); localStorage.setItem('teacherName', settings.teacher); localStorage.setItem('appLogo', settings.logo); alert("Pengaturan Tersimpan!"); }
             const handleLogoUpload = (e) => { const f = e.target.files[0]; if(f) { const r = new FileReader(); r.onloadend = () => setSettings({...settings, logo: r.result}); r.readAsDataURL(f); } }
 
-            const addHafalanRow = () => setForm({...form, hafalans: [...form.hafalans, {surah:'', ayat:'', fluency:''}]});
-            const updateHafalanRow = (idx, f, v) => { const n = [...form.hafalans]; n[idx][f] = v; setForm({...form, hafalans: n}); };
-            const removeHafalanRow = (idx) => { const n = form.hafalans.filter((_, i) => i !== idx); setForm({...form, hafalans: n}); };
-            
-            const saveRecord = async (e) => {
+            // --- FUNGSI DATA SANTRI ---
+            const [newStudent, setNewStudent] = useState('');
+            const saveStudent = async () => { if(newStudent){ await window.fb.addDoc(window.fb.collection(window.db, 'users', user.uid, 'students'), {name: newStudent}); setNewStudent(''); } }
+            const deleteStudent = async (id) => { if(confirm("Hapus santri?")) await window.fb.deleteDoc(window.fb.doc(window.db, 'users', user.uid, 'students', id)); }
+
+            // --- FUNGSI INPUT HARIAN (Sederhana) ---
+            const [dailyForm, setDailyForm] = useState({ studentId: '', materi: '', nilai: 'Lancar' });
+            const saveDaily = async (e) => {
                 e.preventDefault();
-                if(!form.studentId) return alert("Pilih Santri!");
-                const sName = students.find(s=>s.id===form.studentId)?.name;
-                await window.fb.addDoc(window.fb.collection(window.db, 'users', user.uid, 'records'), { ...form, hafalans: form.hafalans.filter(h=>h.surah), studentName: sName, created_at: window.fb.serverTimestamp() });
-                alert("Tersimpan! ✅");
-                setForm(p => ({...p, notes:'', iqroPage:'', quranAyat:'', hafalans:[{surah:'', ayat:'', fluency:''}], doa:'', hadits:'', adab:''}));
-            }
-            const deleteRecord = async (id) => { if(confirm("Hapus?")) await window.fb.deleteDoc(window.fb.doc(window.db, 'users', user.uid, 'records', id)); }
-
-            const handleDownloadListPDF = () => {
-                let sEvals = []; if(filterStudent !== 'all') sEvals = evaluations.filter(e => e.studentId === filterStudent);
-                const fRecs = records.filter(r => {
-                    const sMatch = filterStudent === 'all' || r.studentId === filterStudent;
-                    const dMatch = r.date >= filterStartDate && r.date <= filterEndDate;
-                    return sMatch && dMatch;
-                });
-                const sName = filterStudent === 'all' ? 'all' : students.find(s=>s.id===filterStudent)?.name || 'Santri';
-                generateListPDF(fRecs, settings, sName, filterStartDate, filterEndDate, sEvals);
+                if(!dailyForm.studentId) return alert("Pilih Santri");
+                const sName = students.find(s=>s.id===dailyForm.studentId)?.name;
+                await window.fb.addDoc(window.fb.collection(window.db, 'users', user.uid, 'records'), { ...dailyForm, studentName: sName, created_at: window.fb.serverTimestamp(), date: new Date().toISOString().split('T')[0] });
+                alert("Tersimpan!");
             }
 
-            // FUNGSI PERSIAPAN CETAK RAPOR (A4 VIEW)
-            const preparePrintRapor = () => {
-                const sId = selectedStudentForRapor.id;
-                // Ambil semua record anak ini
-                const studentRecords = records.filter(r => r.studentId === sId);
+            // --- FUNGSI RAPOR MANUAL ---
+            // Helper untuk menambah/hapus baris di form rapor
+            const addRow = (section) => setRaporForm({...raporForm, [section]: [...raporForm[section], { materi: '', ayat: '', nilai: '' }]});
+            const removeRow = (section, idx) => {
+                const newRows = raporForm[section].filter((_, i) => i !== idx);
+                setRaporForm({...raporForm, [section]: newRows});
+            }
+            const updateRow = (section, idx, field, value) => {
+                const newRows = [...raporForm[section]];
+                newRows[idx][field] = value;
+                setRaporForm({...raporForm, [section]: newRows});
+            }
+
+            // GENERATE PDF RAPOR
+            const generatePDF = () => {
+                if(!raporForm.studentId) return alert("Pilih Santri Dulu!");
+                const doc = new window.jspdf.jsPDF();
+                const studentName = students.find(s=>s.id === raporForm.studentId)?.name || "Santri";
                 
-                // Ambil hafalan unik (yang terbaru per surat)
-                const hafalanMap = new Map();
-                // Check format lama (hafalanSurah)
-                studentRecords.forEach(r => {
-                    if(r.hafalanSurah) hafalanMap.set(r.hafalanSurah, {materi: r.hafalanSurah, ayat: r.hafalanAyat, status: r.hafalanFluency});
+                // KOP SURAT
+                if(settings.logo) { try { doc.addImage(settings.logo, 'JPEG', 15, 10, 20, 20); } catch(e){} }
+                doc.setFontSize(16); doc.setFont("helvetica", "bold");
+                doc.text("LAPORAN PERKEMBANGAN TAHFIDZ", 105, 20, { align: "center" });
+                doc.setFontSize(12); doc.setFont("helvetica", "normal");
+                doc.text(settings.tpa || "TPA / Rumah Qur'an", 105, 27, { align: "center" });
+                doc.line(15, 32, 195, 32);
+
+                // IDENTITAS
+                doc.setFontSize(10);
+                doc.text(`Nama Santri : ${studentName}`, 15, 42);
+                doc.text(`Periode     : ${raporForm.periode || '-'}`, 15, 48);
+                doc.text(`Penguji     : ${settings.teacher || '-'}`, 130, 42);
+
+                let currentY = 55;
+
+                // TABEL 1: AL-QURAN
+                doc.setFontSize(11); doc.setFont("helvetica", "bold"); doc.setTextColor(0, 100, 0);
+                doc.text("A. HAFALAN AL-QUR'AN", 15, currentY);
+                currentY += 2;
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['No', 'Surat / Materi', 'Ayat / Hal', 'Nilai / Keterangan']],
+                    body: raporForm.quran.map((r, i) => [i+1, r.materi, r.ayat, r.nilai]),
+                    theme: 'grid',
+                    headStyles: { fillColor: [22, 163, 74] }, // Warna Hijau
+                    columnStyles: { 0: {cellWidth: 10}, 2: {cellWidth: 30}, 3: {cellWidth: 50} },
+                    margin: { left: 15, right: 15 }
                 });
-                // Check format baru (array hafalans)
-                studentRecords.forEach(r => {
-                    if(r.hafalans && Array.isArray(r.hafalans)) {
-                        r.hafalans.forEach(h => {
-                            if(h.surah) hafalanMap.set(h.surah, {materi: h.surah, ayat: h.ayat, status: h.fluency});
-                        });
-                    }
+                currentY = doc.lastAutoTable.finalY + 10;
+
+                // TABEL 2: DOA
+                doc.text("B. HAFALAN DOA HARIAN", 15, currentY);
+                currentY += 2;
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['No', 'Nama Doa', 'Nilai / Keterangan']],
+                    body: raporForm.doa.map((r, i) => [i+1, r.materi, r.nilai]),
+                    theme: 'grid',
+                    headStyles: { fillColor: [234, 179, 8] }, // Warna Kuning/Orange
+                    columnStyles: { 0: {cellWidth: 10}, 2: {cellWidth: 50} },
+                    margin: { left: 15, right: 15 }
                 });
+                currentY = doc.lastAutoTable.finalY + 10;
 
-                // Ambil Doa unik
-                const doaMap = new Map();
-                studentRecords.filter(r=>r.doa).forEach(r => doaMap.set(r.doa, {materi: r.doa, status: r.doaFluency}));
-
-                // Ambil Hadits unik
-                const haditsMap = new Map();
-                studentRecords.filter(r=>r.hadits).forEach(r => haditsMap.set(r.hadits, {materi: r.hadits, status: r.haditsFluency}));
-
-                // Ambil Evaluasi Terakhir
-                const lastEval = evaluations.filter(e => e.studentId === sId)[0];
-
-                setPrintViewData({
-                    student: selectedStudentForRapor,
-                    hafalan: Array.from(hafalanMap.values()),
-                    doa: Array.from(doaMap.values()),
-                    hadits: Array.from(haditsMap.values()),
-                    evaluasi: lastEval
+                // TABEL 3: HADITS
+                doc.text("C. HAFALAN HADITS", 15, currentY);
+                currentY += 2;
+                doc.autoTable({
+                    startY: currentY,
+                    head: [['No', 'Tema Hadits', 'Nilai / Keterangan']],
+                    body: raporForm.hadits.map((r, i) => [i+1, r.materi, r.nilai]),
+                    theme: 'grid',
+                    headStyles: { fillColor: [59, 130, 246] }, // Warna Biru
+                    columnStyles: { 0: {cellWidth: 10}, 2: {cellWidth: 50} },
+                    margin: { left: 15, right: 15 }
                 });
+                currentY = doc.lastAutoTable.finalY + 10;
+
+                // CATATAN
+                // Cek jika halaman tidak cukup
+                if(currentY > 250) { doc.addPage(); currentY = 20; }
+                
+                doc.setFillColor(240, 240, 240);
+                doc.rect(15, currentY, 180, 20, 'F');
+                doc.setFont("helvetica", "bold"); doc.setTextColor(0,0,0);
+                doc.text("Catatan Ustadz/Ustadzah:", 17, currentY + 6);
+                doc.setFont("helvetica", "normal");
+                doc.text(raporForm.catatan || "-", 17, currentY + 12);
+
+                // TANDA TANGAN
+                const signY = currentY + 35;
+                doc.text("Mengetahui,", 15, signY);
+                doc.text("Orang Tua Santri", 15, signY + 6);
+                doc.text("( ........................... )", 15, signY + 25);
+
+                doc.text(settings.tpa ? "Kepala TPA" : "Guru Pembimbing", 140, signY + 6);
+                doc.text(`( ${settings.teacher || "..........................."} )`, 140, signY + 25);
+
+                doc.save(`Rapor_${studentName}.pdf`);
             }
 
-            const selDoa = DOA_DATA.find(d => d.title === form.doa);
-            const selHadits = HADITS_DATA.find(h => h.title === form.hadits);
 
-            if(!user) return <div className="h-screen flex items-center justify-center bg-slate-50"><button onClick={handleLogin} className="bg-white p-6 rounded-xl shadow-xl text-blue-600 font-bold flex gap-2"><Icon name="login"/> LOGIN GOOGLE</button></div>;
+            // --- UI RENDER ---
+            if(!user) return (
+                <div className="min-h-screen flex items-center justify-center bg-gray-100">
+                    <button onClick={handleLogin} className="bg-white p-6 rounded-xl shadow-xl flex items-center gap-3 font-bold text-blue-600 hover:scale-105 transition">
+                        🔑 Login Google Untuk Mulai
+                    </button>
+                </div>
+            );
 
-            // --- TAMPILAN CETAK RAPOR (A4) ---
-            if(printViewData) {
-                return (
-                    <div className="min-h-screen bg-gray-500 py-10 overflow-auto">
-                        <div className="fixed top-0 w-full bg-white p-3 shadow flex justify-between z-50 no-print px-4 lg:px-10">
-                            <button onClick={() => setPrintViewData(null)} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-bold hover:bg-gray-300"><Icon name="left"/> Kembali ke App</button>
-                            <button onClick={() => window.print()} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 shadow-lg"><Icon name="print"/> Cetak / Simpan PDF</button>
+            return (
+                <div className="max-w-4xl mx-auto min-h-screen bg-white shadow-2xl flex flex-col">
+                    {/* HEADER */}
+                    <div className="bg-slate-900 text-white p-4 flex justify-between items-center sticky top-0 z-50">
+                        <div className="flex items-center gap-3 font-bold text-lg">
+                            {settings.logo ? <img src={settings.logo} className="w-8 h-8 rounded bg-white"/> : "📖"} 
+                            App Ngaji
                         </div>
-
-                        <div id="area-print" className="bg-white mx-auto p-12 max-w-[210mm] min-h-[297mm] shadow-2xl text-black relative">
-                            {/* KOP */}
-                            <div className="text-center border-b-2 border-black pb-4 mb-6 flex items-center justify-center gap-4">
-                                {settings.logo && <img src={settings.logo} className="w-20 h-20 object-contain"/>}
-                                <div>
-                                    <h1 className="text-2xl font-bold tracking-wide">RAPOR PERKEMBANGAN TAHFIDZ</h1>
-                                    <p className="text-lg font-semibold uppercase text-gray-600">{settings.tpa || "TPA / RUMAH QUR'AN INDONESIA"}</p>
-                                </div>
-                            </div>
-
-                            {/* IDENTITAS */}
-                            <div className="mb-8">
-                                <table className="w-full text-sm font-medium">
-                                    <tbody>
-                                        <tr><td className="w-32 py-1">Nama Santri</td><td>: <span className="font-bold text-lg">{printViewData.student.name}</span></td></tr>
-                                        <tr><td className="py-1">Penguji/Guru</td><td>: {settings.teacher}</td></tr>
-                                        <tr><td className="py-1">Tanggal Cetak</td><td>: {new Date().toLocaleDateString('id-ID', {year: 'numeric', month: 'long', day: 'numeric'})}</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* TABEL A: QURAN */}
-                            <div className="mb-6">
-                                <h3 className="font-bold bg-green-100 p-2 mb-2 border-l-4 border-green-600 text-green-900">A. Hafalan Al-Qur'an</h3>
-                                <table className="w-full border-collapse border border-black text-sm">
-                                    <thead>
-                                        <tr className="bg-gray-100 text-center">
-                                            <th className="border border-black p-2 w-10">No</th>
-                                            <th className="border border-black p-2 text-left">Surat</th>
-                                            <th className="border border-black p-2 w-20">Ayat</th>
-                                            <th className="border border-black p-2 w-24">Predikat</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {printViewData.hafalan.length === 0 ? <tr><td colSpan="4" className="text-center p-3 border border-black italic text-gray-500">Belum ada data hafalan</td></tr> : 
-                                        printViewData.hafalan.map((item, i) => (
-                                            <tr key={i}>
-                                                <td className="border border-black p-2 text-center">{i+1}</td>
-                                                <td className="border border-black p-2 font-semibold">{item.materi}</td>
-                                                <td className="border border-black p-2 text-center">{item.ayat || '-'}</td>
-                                                <td className="border border-black p-2 text-center font-bold">
-                                                    {item.status && item.status.includes('Lancar') ? '✅ Baik' : '⚠️ Latihan'}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* TABEL B: DOA */}
-                            <div className="mb-6">
-                                <h3 className="font-bold bg-yellow-100 p-2 mb-2 border-l-4 border-yellow-500 text-yellow-900">B. Hafalan Do'a & Hadits</h3>
-                                <table className="w-full border-collapse border border-black text-sm">
-                                    <thead>
-                                        <tr className="bg-gray-100 text-center">
-                                            <th className="border border-black p-2 w-10">No</th>
-                                            <th className="border border-black p-2 text-left">Materi</th>
-                                            <th className="border border-black p-2 w-24">Keterangan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {[...printViewData.doa, ...printViewData.hadits].length === 0 ? <tr><td colSpan="3" className="text-center p-3 border border-black italic text-gray-500">Belum ada data</td></tr> : 
-                                        [...printViewData.doa, ...printViewData.hadits].map((item, i) => (
-                                            <tr key={i}>
-                                                <td className="border border-black p-2 text-center">{i+1}</td>
-                                                <td className="border border-black p-2 font-semibold">{item.materi}</td>
-                                                <td className="border border-black p-2 text-center text-green-700 font-bold">
-                                                    {item.status && item.status.includes('Lancar') ? 'TUNTAS' : '-'}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                             {/* EVALUASI */}
-                             <div className="mb-10">
-                                <h3 className="font-bold bg-blue-100 p-2 mb-2 border-l-4 border-blue-500 text-blue-900">C. Catatan Guru & Evaluasi</h3>
-                                <div className="border border-black p-4 min-h-[100px] text-sm whitespace-pre-wrap">
-                                    {printViewData.evaluasi ? (
-                                        <>
-                                            <p className="font-bold underline mb-2">Periode: {printViewData.evaluasi.period}</p>
-                                            {printViewData.evaluasi.content}
-                                        </>
-                                    ) : "Belum ada catatan evaluasi untuk periode ini."}
-                                </div>
-                            </div>
-
-                            {/* TANDA TANGAN */}
-                            <div className="flex justify-between px-10 mt-20">
-                                <div className="text-center">
-                                    <p className="mb-20">Mengetahui Orang Tua</p>
-                                    <p className="border-t border-black px-6 font-bold">( ............................. )</p>
-                                </div>
-                                <div className="text-center">
-                                    <p className="mb-20">Guru Pembimbing</p>
-                                    <p className="border-t border-black px-6 font-bold">{settings.teacher}</p>
-                                </div>
-                            </div>
+                        <div className="flex gap-2">
+                            <button onClick={()=>setActiveTab('input')} className={`px-3 py-1 rounded ${activeTab==='input'?'bg-blue-600':'hover:bg-slate-700'}`}>Harian</button>
+                            <button onClick={()=>setActiveTab('rapor')} className={`px-3 py-1 rounded ${activeTab==='rapor'?'bg-blue-600':'hover:bg-slate-700'}`}>Buat Rapor</button>
+                            <button onClick={()=>setActiveTab('settings')} className={`px-3 py-1 rounded ${activeTab==='settings'?'bg-blue-600':'hover:bg-slate-700'}`}>⚙️</button>
+                            <button onClick={handleLogout} className="px-3 py-1 bg-red-600 rounded text-xs">Keluar</button>
                         </div>
                     </div>
-                )
-            }
 
-            // --- TAMPILAN APP UTAMA ---
-            return (
-                <div className="max-w-7xl mx-auto min-h-screen bg-white shadow-2xl flex flex-col md:flex-row overflow-hidden">
-                    <aside className="bg-slate-900 text-white w-full md:w-72 p-6 flex flex-col gap-6 flex-shrink-0">
-                        <div className="font-bold text-2xl flex items-center gap-3 border-b border-slate-700 pb-4">
-                            {settings.logo ? <img src={settings.logo} className="w-10 h-10 rounded object-cover bg-white"/> : <div className="bg-blue-600 p-2 rounded"><Icon name="book" className="text-white"/></div>} 
-                            Catatan Ngaji
-                        </div>
-                        <nav className="flex-1 space-y-3">
-                            <button onClick={()=>setActiveTab('input')} className={`w-full text-left px-4 py-3 rounded-xl flex gap-3 ${activeTab==='input'?'bg-blue-600 shadow-lg':'hover:bg-slate-800'}`}><Icon name="plus"/> Input Harian</button>
-                            <button onClick={()=>setActiveTab('students')} className={`w-full text-left px-4 py-3 rounded-xl flex gap-3 ${activeTab==='students'?'bg-blue-600 shadow-lg':'hover:bg-slate-800'}`}><Icon name="users"/> Data Santri</button>
-                            <button onClick={()=>setActiveTab('recap')} className={`w-full text-left px-4 py-3 rounded-xl flex gap-3 ${activeTab==='recap'?'bg-blue-600 shadow-lg':'hover:bg-slate-800'}`}><Icon name="chart"/> Laporan PDF</button>
-                        </nav>
-                        <div className="mt-auto pt-6 border-t border-slate-700 flex items-center gap-3"><img src={user.photoURL} className="w-10 h-10 rounded-full"/><div className="text-sm font-bold truncate w-32">{user.displayName}</div><button onClick={handleLogout} className="text-red-400"><Icon name="logout"/></button></div>
-                    </aside>
-
-                    <main className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50 relative">
-                        <header className="bg-white border-b p-6 flex justify-between items-center shadow-sm z-10">
-                            <div><h2 className="text-2xl font-bold text-slate-800">Assalamu'alaikum, <span className="text-blue-600">Ustadz/Ustadzah {settings.teacher}</span></h2></div>
-                            <div className="hidden md:block text-right"><p className="text-xs font-bold text-slate-400">HARI INI</p><p className="font-bold text-slate-800">{new Date().toLocaleDateString('id-ID', {dateStyle:'full'})}</p></div>
-                        </header>
-
-                        <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                            {/* TAB INPUT */}
-                            {activeTab === 'input' && (
-                                <div className="space-y-6 animate-fade max-w-4xl mx-auto">
-                                    <div className="bg-white p-5 rounded-xl shadow-sm border flex gap-4 items-center">
-                                        <div onClick={()=>fileInputRef.current.click()} className="w-12 h-12 rounded border-2 border-dashed flex items-center justify-center cursor-pointer">{settings.logo?<img src={settings.logo} className="w-full h-full object-cover"/>:<Icon name="upload"/>}</div>
-                                        <input type="file" ref={fileInputRef} onChange={handleLogoUpload} className="hidden" accept="image/*"/>
-                                        <div className="flex-1 gap-2 flex flex-col"><input placeholder="Nama TPA" value={settings.tpa} onChange={e=>setSettings({...settings, tpa:e.target.value})} className="border-b font-bold w-full outline-none"/><input placeholder="Nama Guru" value={settings.teacher} onChange={e=>setSettings({...settings, teacher:e.target.value})} className="border-b font-bold w-full outline-none"/></div>
-                                        <button onClick={saveSettings} className="bg-slate-100 px-4 py-2 rounded font-bold text-xs"><Icon name="save"/> SIMPAN</button>
-                                    </div>
-
-                                    <form onSubmit={saveRecord} className="space-y-6">
-                                        <div className="bg-white p-6 rounded-xl shadow-sm border grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div><label className="text-xs font-bold text-slate-400">TANGGAL</label><input type="date" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} className="w-full border p-2 rounded-lg"/></div>
-                                            <div>
-                                                <label className="text-xs font-bold text-slate-400">PILIH SANTRI</label>
-                                                <select value={form.studentId} onChange={e=>setForm({...form, studentId:e.target.value})} className="w-full border p-2 rounded-lg font-bold">
-                                                    <option value="">-- Pilih Nama --</option>
-                                                    {students.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
-                                                </select>
-                                                {students.length === 0 && <p className="text-xs text-red-500 mt-1">*Input Santri dulu di menu Data Santri</p>}
-                                            </div>
+                    <div className="p-4 flex-1 bg-slate-50 overflow-y-auto">
+                        
+                        {/* TAB INPUT HARIAN (SIMPLE) */}
+                        {activeTab === 'input' && (
+                            <div className="animate-fade">
+                                <h2 className="font-bold text-xl mb-4 text-slate-700">📝 Input Setoran Harian</h2>
+                                <form onSubmit={saveDaily} className="bg-white p-4 rounded-xl shadow-sm border space-y-4">
+                                    <select className="w-full border p-2 rounded" value={dailyForm.studentId} onChange={e=>setDailyForm({...dailyForm, studentId:e.target.value})}>
+                                        <option value="">-- Pilih Santri --</option>
+                                        {students.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                    <input placeholder="Materi (Misal: Iqro 2 Hal 5 / An-Naba)" className="w-full border p-2 rounded" value={dailyForm.materi} onChange={e=>setDailyForm({...dailyForm, materi:e.target.value})}/>
+                                    <select className="w-full border p-2 rounded" value={dailyForm.nilai} onChange={e=>setDailyForm({...dailyForm, nilai:e.target.value})}>
+                                        <option>Lancar</option><option>Ulang</option><option>Belum Lancar</option>
+                                    </select>
+                                    <button className="w-full bg-blue-600 text-white py-2 rounded font-bold">SIMPAN</button>
+                                </form>
+                                {/* List Singkat */}
+                                <div className="mt-6 space-y-2">
+                                    {records.slice(0,5).map(r=>(
+                                        <div key={r.id} className="bg-white p-3 rounded border flex justify-between">
+                                            <span><b>{r.studentName}</b>: {r.materi}</span>
+                                            <span className="text-sm bg-green-100 px-2 rounded text-green-700">{r.nilai}</span>
                                         </div>
-
-                                        <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-100 shadow-sm">
-                                            <h3 className="font-bold text-emerald-800 mb-4 flex gap-2"><Icon name="book"/> BACAAN UTAMA</h3>
-                                            <div className="flex gap-4 mb-4"><label className="flex gap-2 font-bold"><input type="radio" checked={form.readingType==='iqro'} onChange={()=>setForm({...form, readingType:'iqro'})}/> IQRO</label><label className="flex gap-2 font-bold"><input type="radio" checked={form.readingType==='quran'} onChange={()=>setForm({...form, readingType:'quran'})}/> AL-QURAN</label></div>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                {form.readingType === 'iqro' ? (<><select value={form.iqroLevel} onChange={e=>setForm({...form, iqroLevel:e.target.value})} className="border p-2 rounded-lg">{IQRO_LEVELS.map(l=><option key={l}>{l}</option>)}</select><input placeholder="Hal" value={form.iqroPage} onChange={e=>setForm({...form, iqroPage:e.target.value})} className="border p-2 rounded-lg"/><select value={form.iqroFluency} onChange={e=>setForm({...form, iqroFluency:e.target.value})} className="border p-2 rounded-lg"><option>L - Lancar</option><option>BL - Belum</option><option>U - Ulangi</option></select></>) : (<><select value={form.quranSurah} onChange={e=>setForm({...form, quranSurah:e.target.value})} className="border p-2 rounded-lg">{SURAH_LIST.map(s=><option key={s}>{s}</option>)}</select><input placeholder="Ayat" value={form.quranAyat} onChange={e=>setForm({...form, quranAyat:e.target.value})} className="border p-2 rounded-lg"/><select value={form.quranFluency} onChange={e=>setForm({...form, quranFluency:e.target.value})} className="border p-2 rounded-lg"><option>L - Lancar</option><option>BL - Belum</option><option>U - Ulangi</option></select></>)}
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-purple-50 p-6 rounded-xl border border-purple-100 shadow-sm">
-                                            <h3 className="font-bold text-purple-800 mb-4 flex justify-between"><span><Icon name="star"/> SETORAN HAFALAN</span><button type="button" onClick={addHafalanRow} className="text-xs bg-purple-200 px-2 py-1 rounded">+ Baris</button></h3>
-                                            {form.hafalans.map((h, idx) => (
-                                                <div key={idx} className="flex gap-2 mb-2 items-center"><select value={h.surah} onChange={e=>updateHafalanRow(idx, 'surah', e.target.value)} className="flex-1 border p-2 rounded-lg text-sm"><option value="">- Surah -</option>{SURAH_LIST.map(s=><option key={s}>{s}</option>)}</select><input placeholder="Ayat" value={h.ayat} onChange={e=>updateHafalanRow(idx, 'ayat', e.target.value)} className="w-20 border p-2 rounded-lg text-sm"/><select value={h.fluency} onChange={e=>updateHafalanRow(idx, 'fluency', e.target.value)} className="w-24 border p-2 rounded-lg text-sm"><option value="">- Nilai -</option><option>L - Lancar</option><option>BL - Belum</option></select>{form.hafalans.length>1 && <button type="button" onClick={()=>removeHafalanRow(idx)} className="text-red-400"><Icon name="minus"/></button>}</div>
-                                            ))}
-                                        </div>
-
-                                        <div className="bg-amber-50 p-6 rounded-xl border border-amber-100 shadow-sm">
-                                            <h3 className="font-bold text-amber-800 mb-4 flex gap-2"><Icon name="sun"/> MATERI TAMBAHAN</h3>
-                                            <div className="flex flex-col gap-6">
-                                                <div className="border-b border-amber-200 pb-4">
-                                                    <label className="font-bold text-amber-900 block mb-2">1. DOA HARIAN</label>
-                                                    <div className="flex flex-col gap-2 mb-2">
-                                                        <select value={form.doa} onChange={e=>setForm({...form, doa:e.target.value})} className="w-full border p-2 rounded-lg text-sm"><option value="">- Pilih Doa -</option>{DOA_DATA.map(d=><option key={d.title} value={d.title}>{d.title}</option>)}</select>
-                                                        <select value={form.doaFluency} onChange={e=>setForm({...form, doaFluency:e.target.value})} className="w-full border p-2 rounded-lg text-sm bg-white"><option value="">- Beri Nilai -</option><option>L - Lancar</option><option>BL - Belum</option></select>
-                                                    </div>
-                                                    {selDoa && <div className="bg-white p-4 rounded-xl border text-center shadow-sm"><p className="font-arabic text-3xl mb-2 leading-relaxed">{selDoa.arabic}</p><p className="text-sm italic text-slate-500">{selDoa.meaning}</p></div>}
-                                                </div>
-                                                <div className="border-b border-amber-200 pb-4">
-                                                    <label className="font-bold text-amber-900 block mb-2">2. HADITS PILIHAN</label>
-                                                    <div className="flex flex-col gap-2 mb-2">
-                                                        <select value={form.hadits} onChange={e=>setForm({...form, hadits:e.target.value})} className="w-full border p-2 rounded-lg text-sm"><option value="">- Pilih Hadits -</option>{HADITS_DATA.map(h=><option key={h.title} value={h.title}>{h.title}</option>)}</select>
-                                                        <select value={form.haditsFluency} onChange={e=>setForm({...form, haditsFluency:e.target.value})} className="w-full border p-2 rounded-lg text-sm bg-white"><option value="">- Beri Nilai -</option><option>L - Lancar</option><option>BL - Belum</option></select>
-                                                    </div>
-                                                    {selHadits && <div className="bg-white p-4 rounded-xl border text-center shadow-sm"><p className="font-arabic text-3xl mb-2 leading-relaxed">{selHadits.arabic}</p><p className="text-sm italic text-slate-500">{selHadits.meaning}</p></div>}
-                                                </div>
-                                                <div>
-                                                    <label className="font-bold text-amber-900 block mb-2">3. ADAB ISLAM</label>
-                                                    <div className="flex flex-col gap-2">
-                                                        <select value={form.adab} onChange={e=>setForm({...form, adab:e.target.value})} className="w-full border p-2 rounded-lg text-sm"><option value="">- Pilih Adab -</option>{ADAB_LIST.map(a=><option key={a} value={a}>{a}</option>)}</select>
-                                                        <select value={form.adabFluency} onChange={e=>setForm({...form, adabFluency:e.target.value})} className="w-full border p-2 rounded-lg text-sm bg-white"><option value="">- Beri Nilai -</option><option>L - Lancar</option><option>BL - Belum</option></select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <textarea placeholder="Catatan tambahan..." value={form.notes} onChange={e=>setForm({...form, notes:e.target.value})} className="w-full border p-3 rounded-xl h-24"/>
-                                        <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold shadow-lg"><Icon name="save"/> SIMPAN DATA</button>
-                                    </form>
-                                    
-                                    {records.filter(r=>r.date===form.date).length > 0 && <div className="mt-8 bg-white p-4 rounded-xl shadow-sm"><h3 className="font-bold mb-2">Riwayat Hari Ini</h3>{records.filter(r=>r.date===form.date).map(r=><div key={r.id} className="flex justify-between border-b py-2"><span>{r.studentName} - {r.readingType}</span><button onClick={()=>deleteRecord(r.id)} className="text-red-500"><Icon name="trash"/></button></div>)}</div>}
+                                    ))}
                                 </div>
-                            )}
+                            </div>
+                        )}
 
-                            {/* TAB DATA SANTRI */}
-                            {activeTab === 'students' && (
-                                <div className="bg-white p-6 rounded-xl shadow-sm border animate-fade">
-                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6 flex gap-2">
-                                        <input placeholder="Nama Santri Baru..." value={newStudent} onChange={e=>setNewStudent(e.target.value)} className="flex-1 border p-2 rounded-lg"/>
-                                        <button onClick={saveStudent} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold">TAMBAH</button>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {students.map(s=>(
-                                            <div key={s.id} className="flex flex-col p-4 bg-slate-50 rounded-xl border relative">
-                                                {editingStudentId === s.id ? (
-                                                    <div className="flex gap-2"><input value={editNameValue} onChange={e=>setEditNameValue(e.target.value)} className="border p-2 rounded w-full"/><button onClick={saveEditedStudent} className="bg-green-500 text-white px-2 rounded">OK</button></div>
-                                                ) : (
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">{s.name[0]}</div><div className="font-bold text-lg">{s.name}</div></div>
-                                                        <div className="flex gap-1"><button onClick={()=>startEditing(s)} className="text-blue-400 bg-white p-2 rounded border"><Icon name="edit"/></button><button onClick={()=>deleteStudent(s.id)} className="text-red-400 bg-white p-2 rounded border"><Icon name="trash"/></button></div>
-                                                    </div>
-                                                )}
-                                                <button onClick={()=>openRaporModal(s)} className="w-full bg-orange-100 text-orange-700 py-2 rounded-lg font-bold text-sm border border-orange-200 hover:bg-orange-200 flex justify-center gap-2"><Icon name="file"/> RAPOR & CATATAN</button>
-                                            </div>
-                                        ))}
-                                    </div>
+                        {/* TAB PENGATURAN & DATA SANTRI */}
+                        {activeTab === 'settings' && (
+                            <div className="animate-fade space-y-6">
+                                <div className="bg-white p-4 rounded-xl shadow border">
+                                    <h3 className="font-bold mb-2">Data Lembaga</h3>
+                                    <input type="file" onChange={handleLogoUpload} className="mb-2 text-sm"/>
+                                    <input placeholder="Nama TPA" className="w-full border p-2 rounded mb-2" value={settings.tpa} onChange={e=>setSettings({...settings, tpa:e.target.value})}/>
+                                    <input placeholder="Nama Guru" className="w-full border p-2 rounded mb-2" value={settings.teacher} onChange={e=>setSettings({...settings, teacher:e.target.value})}/>
+                                    <button onClick={saveSettings} className="bg-green-600 text-white px-4 py-2 rounded">Simpan Info</button>
                                 </div>
-                            )}
-
-                            {/* TAB REKAP */}
-                            {activeTab === 'recap' && (
-                                <div className="bg-white p-6 rounded-xl shadow-sm border animate-fade">
-                                    <div className="flex flex-col md:flex-row justify-between mb-6 gap-4">
-                                        <h2 className="font-bold text-xl"><Icon name="calendar"/> Rekapitulasi</h2>
-                                        <div className="flex gap-2 items-center">
-                                            <input type="date" value={filterStartDate} onChange={e=>setFilterStartDate(e.target.value)} className="border rounded px-2 py-1"/>
-                                            <span>-</span>
-                                            <input type="date" value={filterEndDate} onChange={e=>setFilterEndDate(e.target.value)} className="border rounded px-2 py-1"/>
-                                        </div>
-                                    </div>
+                                <div className="bg-white p-4 rounded-xl shadow border">
+                                    <h3 className="font-bold mb-2">Data Santri</h3>
                                     <div className="flex gap-2 mb-4">
-                                        <select value={filterStudent} onChange={e=>setFilterStudent(e.target.value)} className="flex-1 bg-blue-50 border-blue-200 py-2 px-4 rounded-xl font-bold"><option value="all">Semua Santri</option>{students.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select>
-                                        <button onClick={handleDownloadListPDF} className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2"><Icon name="download"/> PDF</button>
+                                        <input placeholder="Nama Baru..." className="flex-1 border p-2 rounded" value={newStudent} onChange={e=>setNewStudent(e.target.value)}/>
+                                        <button onClick={saveStudent} className="bg-blue-600 text-white px-4 rounded">Tambah</button>
                                     </div>
-                                    <div className="overflow-x-auto rounded-lg border">
-                                        <table className="w-full text-sm text-left"><thead className="bg-slate-800 text-white"><tr><th className="p-3">Tanggal</th><th className="p-3">Nama</th><th className="p-3">Materi</th><th className="p-3">Tambahan</th></tr></thead>
-                                            <tbody className="divide-y">
-                                                {records.filter(r => (filterStudent==='all' || r.studentId===filterStudent) && r.date >= filterStartDate && r.date <= filterEndDate).map(r=>(
-                                                    <tr key={r.id} className="hover:bg-slate-50">
-                                                        <td className="p-3 align-top">{r.date}</td>
-                                                        <td className="p-3 align-top font-bold">{r.studentName}</td>
-                                                        <td className="p-3 align-top">
-                                                            <div className="font-semibold text-blue-700">{r.readingType==='iqro'?r.iqroLevel:r.quranSurah}</div>
-                                                            <div className="text-xs text-slate-500">{r.readingType==='iqro'?`Hal ${r.iqroPage}`:`Ayat ${r.quranAyat}`} <span className="font-bold">({r.readingType==='iqro'?r.iqroFluency.split(' - ')[0]:r.quranFluency.split(' - ')[0]})</span></div>
-                                                            {(r.hafalans || []).map((h, i) => <div key={i} className="text-xs text-purple-600 mt-1 font-bold">⭐ {h.surah} : {h.ayat} ({h.fluency.split(' - ')[0]})</div>)}
-                                                            {!r.hafalans && r.hafalanSurah && <div className="text-xs text-purple-600 mt-1 font-bold">⭐ {r.hafalanSurah} : {r.hafalanAyat} ({r.hafalanFluency.split(' - ')[0]})</div>}
-                                                        </td>
-                                                        <td className="p-3 align-top text-xs italic space-y-1">
-                                                            {r.doa && r.doaFluency && <div className="text-amber-700">{r.doa} ({r.doaFluency.split(' - ')[0]})</div>}
-                                                            {r.hadits && r.haditsFluency && <div className="text-amber-700">{r.hadits} ({r.haditsFluency.split(' - ')[0]})</div>}
-                                                            {r.adab && r.adabFluency && <div className="text-amber-700">{r.adab} ({r.adabFluency.split(' - ')[0]})</div>}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                    {students.map(s=>(
+                                        <div key={s.id} className="flex justify-between border-b py-2">
+                                            <span>{s.name}</span>
+                                            <button onClick={()=>deleteStudent(s.id)} className="text-red-500">Hapus</button>
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
 
-                        {/* MODAL INPUT CATATAN RAPOR + TOMBOL CETAK */}
-                        {raporModalOpen && selectedStudentForRapor && (
-                            <div className="fixed inset-0 modal-overlay flex items-center justify-center p-4 z-50">
-                                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-                                    <div className="p-4 border-b bg-orange-50 flex justify-between items-center">
-                                        <h3 className="font-bold text-orange-900 flex items-center gap-2"><Icon name="file"/> Rapor: {selectedStudentForRapor.name}</h3>
-                                        <button onClick={()=>setRaporModalOpen(false)} className="text-gray-500 hover:text-gray-800 font-bold">✕</button>
+                        {/* TAB RAPOR MANUAL (FITUR UTAMA) */}
+                        {activeTab === 'rapor' && (
+                            <div className="animate-fade">
+                                <h2 className="font-bold text-xl mb-4 text-slate-700 flex items-center gap-2">🎓 Buat Rapor Manual</h2>
+                                
+                                <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                                    {/* Bagian Atas */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500">NAMA SANTRI</label>
+                                            <select className="w-full border-2 border-blue-100 p-2 rounded-lg font-bold" value={raporForm.studentId} onChange={e=>setRaporForm({...raporForm, studentId:e.target.value})}>
+                                                <option value="">-- Pilih Nama --</option>
+                                                {students.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500">PERIODE / SEMESTER</label>
+                                            <input placeholder="Cth: Januari 2026 / Semester 1" className="w-full border p-2 rounded-lg" value={raporForm.periode} onChange={e=>setRaporForm({...raporForm, periode:e.target.value})}/>
+                                        </div>
                                     </div>
-                                    <div className="p-4 flex-1 overflow-y-auto bg-slate-50">
-                                        <button onClick={preparePrintRapor} className="w-full bg-slate-800 text-white py-3 rounded-lg font-bold mb-6 flex items-center justify-center gap-2 shadow-lg hover:bg-slate-700 transition"><Icon name="print"/> LIHAT & CETAK RAPOR PDF</button>
+
+                                    {/* Tabel Input Manual */}
+                                    <div className="space-y-6">
                                         
-                                        <div className="space-y-4 mb-6">
-                                            {evaluations.filter(e => e.studentId === selectedStudentForRapor.id).length === 0 && <p className="text-center text-gray-400 italic py-4">Belum ada catatan evaluasi.</p>}
-                                            {evaluations.filter(e => e.studentId === selectedStudentForRapor.id).map(e => (
-                                                <div key={e.id} className="bg-white p-4 rounded-xl border shadow-sm relative group">
-                                                    <div className="font-bold text-orange-700 text-sm mb-1">{e.period}</div>
-                                                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{e.content}</p>
-                                                    <button onClick={()=>deleteRapor(e.id)} className="absolute top-2 right-2 text-red-300 hover:text-red-500"><Icon name="trash" size={14}/></button>
+                                        {/* SECTION QURAN */}
+                                        <div className="border rounded-xl p-4 bg-green-50">
+                                            <h3 className="font-bold text-green-800 mb-2 flex justify-between">
+                                                A. HAFALAN QUR'AN
+                                                <button onClick={()=>addRow('quran')} className="text-xs bg-green-200 px-2 py-1 rounded hover:bg-green-300">+ Tambah Baris</button>
+                                            </h3>
+                                            {raporForm.quran.map((row, idx) => (
+                                                <div key={idx} className="flex gap-2 mb-2">
+                                                    <input placeholder="Surat (Cth: Al-Fatihah s/d An-Nas)" className="flex-1 border p-1 rounded text-sm" value={row.materi} onChange={e=>updateRow('quran', idx, 'materi', e.target.value)}/>
+                                                    <input placeholder="Ayat (Cth: 1-5)" className="w-24 border p-1 rounded text-sm" value={row.ayat} onChange={e=>updateRow('quran', idx, 'ayat', e.target.value)}/>
+                                                    <input placeholder="Nilai (Cth: Lancar)" className="w-32 border p-1 rounded text-sm" value={row.nilai} onChange={e=>updateRow('quran', idx, 'nilai', e.target.value)}/>
+                                                    {raporForm.quran.length > 1 && <button onClick={()=>removeRow('quran', idx)} className="text-red-400 font-bold">×</button>}
                                                 </div>
                                             ))}
                                         </div>
-                                        <div className="bg-white p-4 rounded-xl border">
-                                            <h4 className="font-bold text-sm mb-2 text-gray-500 uppercase">Input Evaluasi Baru</h4>
-                                            <input placeholder="Judul Periode (Cth: Januari 2026)" className="w-full border p-2 rounded mb-2 text-sm font-bold" value={raporForm.period} onChange={ev=>setRaporForm({...raporForm, period:ev.target.value})}/>
-                                            <textarea placeholder="Tulis evaluasi, perkembangan, dan kesimpulan..." className="w-full border p-2 rounded mb-2 text-sm h-24" value={raporForm.content} onChange={ev=>setRaporForm({...raporForm, content:ev.target.value})}/>
-                                            <button onClick={saveRapor} className="w-full bg-orange-600 text-white py-2 rounded font-bold hover:bg-orange-700">SIMPAN CATATAN</button>
+
+                                        {/* SECTION DOA */}
+                                        <div className="border rounded-xl p-4 bg-yellow-50">
+                                            <h3 className="font-bold text-yellow-800 mb-2 flex justify-between">
+                                                B. HAFALAN DOA
+                                                <button onClick={()=>addRow('doa')} className="text-xs bg-yellow-200 px-2 py-1 rounded hover:bg-yellow-300">+ Tambah Baris</button>
+                                            </h3>
+                                            {raporForm.doa.map((row, idx) => (
+                                                <div key={idx} className="flex gap-2 mb-2">
+                                                    <input placeholder="Nama Doa (Cth: Doa Makan)" className="flex-1 border p-1 rounded text-sm" value={row.materi} onChange={e=>updateRow('doa', idx, 'materi', e.target.value)}/>
+                                                    <input placeholder="Nilai (Cth: Baik)" className="w-32 border p-1 rounded text-sm" value={row.nilai} onChange={e=>updateRow('doa', idx, 'nilai', e.target.value)}/>
+                                                    {raporForm.doa.length > 1 && <button onClick={()=>removeRow('doa', idx)} className="text-red-400 font-bold">×</button>}
+                                                </div>
+                                            ))}
                                         </div>
+
+                                        {/* SECTION HADITS */}
+                                        <div className="border rounded-xl p-4 bg-blue-50">
+                                            <h3 className="font-bold text-blue-800 mb-2 flex justify-between">
+                                                C. HAFALAN HADITS
+                                                <button onClick={()=>addRow('hadits')} className="text-xs bg-blue-200 px-2 py-1 rounded hover:bg-blue-300">+ Tambah Baris</button>
+                                            </h3>
+                                            {raporForm.hadits.map((row, idx) => (
+                                                <div key={idx} className="flex gap-2 mb-2">
+                                                    <input placeholder="Tema Hadits (Cth: Kebersihan)" className="flex-1 border p-1 rounded text-sm" value={row.materi} onChange={e=>updateRow('hadits', idx, 'materi', e.target.value)}/>
+                                                    <input placeholder="Nilai (Cth: Mumtaz)" className="w-32 border p-1 rounded text-sm" value={row.nilai} onChange={e=>updateRow('hadits', idx, 'nilai', e.target.value)}/>
+                                                    {raporForm.hadits.length > 1 && <button onClick={()=>removeRow('hadits', idx)} className="text-red-400 font-bold">×</button>}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* CATATAN */}
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500">CATATAN USTADZ/USTADZAH</label>
+                                            <textarea className="w-full border p-2 rounded h-20" placeholder="Tulis pesan untuk orang tua..." value={raporForm.catatan} onChange={e=>setRaporForm({...raporForm, catatan:e.target.value})}/>
+                                        </div>
+
+                                        {/* TOMBOL CETAK */}
+                                        <button onClick={generatePDF} className="w-full bg-slate-800 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-slate-700 flex justify-center items-center gap-2">
+                                            🖨️ CETAK PDF SEKARANG
+                                        </button>
+
                                     </div>
                                 </div>
                             </div>
                         )}
-                    </main>
+
+                    </div>
                 </div>
             );
         }
